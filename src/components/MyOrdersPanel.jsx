@@ -6,15 +6,15 @@ import {
 } from "lucide-react";
 
 const COLORS = {
-  indigo: "#2B3A55",
-  madder: "#B5482E",
-  turmeric: "#C8932E",
-  ivory: "#F4EEE2",
-  ivoryDeep: "#EAE1CE",
-  charcoal: "#2A241D",
-  charcoalSoft: "#5C5448",
-  sage: "#5C6E4E",
-  cream: "#FBF8F2",
+  ivory:        "#FDF6EC",
+  ivoryDeep:    "#F0E4CE",
+  cream:        "#FFFFFF",
+  indigo:       "#3D1F5C",
+  turmeric:     "#E8980A",
+  madder:       "#D45A2A",
+  sage:         "#2E6B4A",
+  charcoal:     "#1A0E28",
+  charcoalSoft: "#6B4E8A",
 };
 
 const STAGES = ["Pending", "Confirmed", "Packed", "Out for delivery", "Delivered"];
@@ -189,7 +189,7 @@ export default function MyOrdersPanel({
             <ShoppingBag size={20} color={COLORS.indigo} />
           </div>
           <div>
-            <h2 style={{ fontFamily: "var(--serif)", fontSize: 19, color: COLORS.indigo, margin: 0 }}>My Wholesale Orders</h2>
+            <h2 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 19, color: COLORS.indigo, margin: 0 }}>My Wholesale Orders</h2>
             <p style={{ fontSize: 11.5, color: COLORS.charcoalSoft, margin: "2px 0 0 0" }}>Track status, courier dispatches, and restock order items</p>
           </div>
         </div>
@@ -272,7 +272,7 @@ export default function MyOrdersPanel({
       {filteredOrders.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px 20px", background: "#FFF", borderRadius: 12, border: `1.5px solid ${COLORS.charcoalSoft}10` }}>
           <Clipboard size={32} color={COLORS.charcoalSoft} opacity="0.5" style={{ margin: "0 auto 12px" }} />
-          <h3 style={{ fontFamily: "var(--serif)", fontSize: 16, color: COLORS.indigo, margin: "0 0 4px 0" }}>No matching orders</h3>
+          <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 16, color: COLORS.indigo, margin: "0 0 4px 0" }}>No matching orders</h3>
           <p style={{ fontSize: 12.5, color: COLORS.charcoalSoft, margin: 0 }}>
             {orders.length === 0 ? "You have not placed any wholesale orders yet." : "No orders match your filter criteria."}
           </p>
@@ -487,7 +487,7 @@ export default function MyOrdersPanel({
                       }}>
                         <div>
                           <span style={{ fontSize: 11, color: COLORS.charcoalSoft, textTransform: "uppercase", letterSpacing: 0.5, display: "block" }}>Shipping Partner</span>
-                          <strong style={{ fontSize: 13.5, color: COLORS.indigo, marginTop: 2, display: "block", fontFamily: "var(--serif)" }}>{tracking.courier}</strong>
+                          <strong style={{ fontSize: 13.5, color: COLORS.indigo, marginTop: 2, display: "block", fontFamily: "'DM Sans', system-ui, sans-serif" }}>{tracking.courier}</strong>
                         </div>
                         <div>
                           <span style={{ fontSize: 11, color: COLORS.charcoalSoft, textTransform: "uppercase", letterSpacing: 0.5, display: "block" }}>Waybill / Airway Bill</span>

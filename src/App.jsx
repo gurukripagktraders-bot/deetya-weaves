@@ -24,15 +24,26 @@ const MOCK_OTP = "1234"; // Replace with real SMS OTP service later
 const ADMIN_PIN = "GKT@2024"; // Change this to your own secret PIN
 
 const COLORS = {
-  indigo: "#2B3A55",
-  madder: "#B5482E",
-  turmeric: "#C8932E",
-  ivory: "#F4EEE2",
-  ivoryDeep: "#EAE1CE",
-  charcoal: "#2A241D",
-  charcoalSoft: "#5C5448",
-  sage: "#5C6E4E",
-  cream: "#FBF8F2",
+  // Backgrounds — warm desert sand
+  ivory:        "#FDF6EC",   // main page background
+  ivoryDeep:    "#F0E4CE",   // inputs, secondary backgrounds
+  cream:        "#FFFFFF",   // card surfaces
+
+  // Primary — Deep Plum (natural indigo-madder mix)
+  indigo:       "#3D1F5C",   // nav, primary buttons, active
+
+  // Accent — Marigold (festival flowers)
+  turmeric:     "#E8980A",   // badges, bestseller, highlights
+
+  // Price / CTA — Sunset Orange
+  madder:       "#D45A2A",   // prices, primary CTAs, alerts
+
+  // Success — Leaf Green
+  sage:         "#2E6B4A",   // in-stock, success, approved
+
+  // Text hierarchy — warm dark plum
+  charcoal:     "#1A0E28",   // headings, primary text
+  charcoalSoft: "#6B4E8A",   // body, secondary text, meta
 };
 
 const STAGES = ["Pending", "Confirmed", "Packed", "Out for delivery", "Delivered"];

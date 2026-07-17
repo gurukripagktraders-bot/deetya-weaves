@@ -5,15 +5,15 @@ import {
 } from "lucide-react";
 
 const COLORS = {
-  indigo: "#2B3A55",
-  madder: "#B5482E",
-  turmeric: "#C8932E",
-  ivory: "#F4EEE2",
-  ivoryDeep: "#EAE1CE",
-  charcoal: "#2A241D",
-  charcoalSoft: "#5C5448",
-  sage: "#5C6E4E",
-  cream: "#FBF8F2",
+  ivory:        "#FDF6EC",
+  ivoryDeep:    "#F0E4CE",
+  cream:        "#FFFFFF",
+  indigo:       "#3D1F5C",
+  turmeric:     "#E8980A",
+  madder:       "#D45A2A",
+  sage:         "#2E6B4A",
+  charcoal:     "#1A0E28",
+  charcoalSoft: "#6B4E8A",
 };
 
 // =============================================
@@ -387,7 +387,7 @@ export default function CartPage({
           <div style={{ display: "inline-flex", padding: 16, borderRadius: "50%", background: `${COLORS.indigo}10`, color: COLORS.indigo, marginBottom: 16 }}>
             <ShoppingBag size={32} />
           </div>
-          <h2 style={{ fontFamily: "var(--serif)", fontSize: 22, color: COLORS.indigo, margin: "0 0 8px 0", fontWeight: 700 }}>No items added in your cart</h2>
+          <h2 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 22, color: COLORS.indigo, margin: "0 0 8px 0", fontWeight: 700 }}>No items added in your cart</h2>
           <p style={{ fontSize: 14, color: COLORS.charcoalSoft, maxWidth: 440, margin: "0 auto 20px auto", lineHeight: 1.5 }}>
             Look around our wholesale handlooms, towel series, and cotton fabrics to load your cargo!
           </p>
@@ -413,7 +413,7 @@ export default function CartPage({
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <Sparkles size={18} color={COLORS.turmeric} />
-            <h3 style={{ fontFamily: "var(--serif)", fontSize: 18, color: COLORS.indigo, margin: 0, fontWeight: 700 }}>
+            <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 18, color: COLORS.indigo, margin: 0, fontWeight: 700 }}>
               {previouslyOrderedItemNames.length > 0 ? "Based on Your Previous Orders" : "Suggested Wholesale Additions"}
             </h3>
           </div>
@@ -477,7 +477,7 @@ export default function CartPage({
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <span style={{ fontSize: 14 }}>⭐</span>
-            <h3 style={{ fontFamily: "var(--serif)", fontSize: 18, color: COLORS.indigo, margin: 0, fontWeight: 700 }}>
+            <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 18, color: COLORS.indigo, margin: 0, fontWeight: 700 }}>
               Featured Bestsellers
             </h3>
           </div>
@@ -571,13 +571,13 @@ export default function CartPage({
           </span>
         </div>
 
-        <h2 style={{ fontFamily: "var(--serif)", fontSize: 24, color: COLORS.indigo, marginBottom: 20, fontWeight: 700 }}>
+        <h2 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 24, color: COLORS.indigo, marginBottom: 20, fontWeight: 700 }}>
           Your Shopping Cart
         </h2>
 
         {/* Selected Items details box */}
         <div style={{ background: COLORS.cream, borderRadius: 12, border: `1.5px solid ${COLORS.charcoalSoft}18`, padding: "18px", marginBottom: 24 }}>
-          <h3 style={{ fontFamily: "var(--serif)", fontSize: 17, color: COLORS.indigo, marginBottom: 16, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+          <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 17, color: COLORS.indigo, marginBottom: 16, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
             <ShoppingBag size={17} color={COLORS.indigo} /> Selected Items ({cartEntries.length})
           </h3>
           
@@ -615,7 +615,7 @@ export default function CartPage({
                         <ImageIcon size={22} color={COLORS.charcoalSoft + "55"} />
                       )}
                     </div>
-                    <div className="product-card-title" style={{ fontFamily: "var(--serif)", fontSize: 15.5, color: COLORS.charcoal, fontWeight: 600, lineHeight: 1.35, minHeight: 42, display: "flex", alignItems: "flex-start" }}>{product.name}</div>
+                    <div className="product-card-title" style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 15.5, color: COLORS.charcoal, fontWeight: 600, lineHeight: 1.35, minHeight: 42, display: "flex", alignItems: "flex-start" }}>{product.name}</div>
                     <div className="product-card-category" style={{ fontSize: 11.5, color: COLORS.charcoalSoft, marginTop: 4, textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 500 }}>
                       {product.category}
                     </div>
@@ -673,7 +673,7 @@ export default function CartPage({
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Sparkles size={16} color={COLORS.turmeric} />
-                <h3 style={{ fontFamily: "var(--serif)", fontSize: 16, color: COLORS.indigo, margin: 0, fontWeight: 700 }}>
+                <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 16, color: COLORS.indigo, margin: 0, fontWeight: 700 }}>
                   Suggested Items
                 </h3>
               </div>
@@ -760,7 +760,7 @@ export default function CartPage({
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <ShoppingBag size={16} color={COLORS.indigo} />
-                <h3 style={{ fontFamily: "var(--serif)", fontSize: 16, color: COLORS.indigo, margin: 0, fontWeight: 700 }}>
+                <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 16, color: COLORS.indigo, margin: 0, fontWeight: 700 }}>
                   Similar Items
                 </h3>
               </div>
@@ -903,7 +903,7 @@ export default function CartPage({
         </span>
       </div>
 
-      <h2 style={{ fontFamily: "var(--serif)", fontSize: 24, color: COLORS.indigo, marginBottom: 20, fontWeight: 700 }}>
+      <h2 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 24, color: COLORS.indigo, marginBottom: 20, fontWeight: 700 }}>
         Checkout details
       </h2>
 
@@ -913,7 +913,7 @@ export default function CartPage({
           
           {/* Delivery Address Section */}
           <div style={{ background: COLORS.cream, borderRadius: 12, border: `1.5px solid ${COLORS.charcoalSoft}18`, padding: "18px" }}>
-            <h3 style={{ fontFamily: "var(--serif)", fontSize: 17, color: COLORS.indigo, marginBottom: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+            <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 17, color: COLORS.indigo, marginBottom: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
               <MapPin size={17} color={COLORS.indigo} /> Delivery Address
             </h3>
 
@@ -1190,7 +1190,7 @@ export default function CartPage({
 
           {/* Payment Method Section */}
           <div style={{ background: COLORS.cream, borderRadius: 12, border: `1.5px solid ${COLORS.charcoalSoft}18`, padding: "18px" }}>
-            <h3 style={{ fontFamily: "var(--serif)", fontSize: 17, color: COLORS.indigo, marginBottom: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+            <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 17, color: COLORS.indigo, marginBottom: 12, display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
               <Wallet size={17} color={COLORS.indigo} /> Wholesale Payment Method
             </h3>
 
@@ -1367,7 +1367,7 @@ export default function CartPage({
         {/* Right Column: Order Summary & Coupon Codes */}
         <div>
           <div style={{ background: COLORS.indigo, borderRadius: 12, padding: "18px", color: COLORS.cream, position: "sticky", top: 20 }}>
-            <h3 style={{ fontFamily: "var(--serif)", fontSize: 17, color: COLORS.cream, marginBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: 8, fontWeight: 600 }}>
+            <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 17, color: COLORS.cream, marginBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.2)", paddingBottom: 8, fontWeight: 600 }}>
               Order Summary
             </h3>
 
