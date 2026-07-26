@@ -4,112 +4,14 @@ import {
   AlertTriangle, Sparkles, Image as ImageIcon, Trash2, ShoppingBag, Plus, Minus, ArrowRight
 } from "lucide-react";
 
-const COLORS = {
-  ivory:        "#FDF6EC",
-  ivoryDeep:    "#F0E4CE",
-  cream:        "#FFFFFF",
-  indigo:       "#3D1F5C",
-  turmeric:     "#E8980A",
-  madder:       "#D45A2A",
-  sage:         "#2E6B4A",
-  charcoal:     "#1A0E28",
-  charcoalSoft: "#6B4E8A",
-};
-
-// =============================================
-// DETAILED ADDRESS HELPERS (Self-Contained)
-// =============================================
-function getStateFromPincode(pincode) {
-  const pin = pincode.trim().slice(0, 2);
-  if (!pin) return "Rajasthan";
-  const code = parseInt(pin, 10);
-  if (code >= 30 && code <= 34) return "Rajasthan";
-  if (code === 11) return "Delhi";
-  if (code >= 12 && code <= 13) return "Haryana";
-  if (code >= 14 && code <= 16) return "Punjab";
-  if (code >= 20 && code <= 28) return "Uttar Pradesh";
-  if (code >= 36 && code <= 39) return "Gujarat";
-  if (code >= 40 && code <= 44) return "Maharashtra";
-  if (code >= 45 && code <= 48) return "Madhya Pradesh";
-  if (code >= 50 && code <= 53) return "Andhra Pradesh";
-  if (code >= 56 && code <= 59) return "Karnataka";
-  if (code >= 60 && code <= 64) return "Tamil Nadu";
-  if (code >= 67 && code <= 69) return "Kerala";
-  if (code >= 70 && code <= 74) return "West Bengal";
-  if (code >= 80 && code <= 85) return "Bihar";
-  return "Rajasthan";
-}
-
-function parseDetailedAddress(addressStr) {
-  const defaultObj = { line1: "", line2: "", landmark: "", pincode: "", city: "", state: "Rajasthan" };
-  if (!addressStr) return defaultObj;
-  
-  if (addressStr.trim().startsWith("{")) {
-    try {
-      const parsed = JSON.parse(addressStr);
-      return {
-        line1: parsed.line1 || "",
-        line2: parsed.line2 || "",
-        landmark: parsed.landmark || "",
-        pincode: parsed.pincode || "",
-        city: parsed.city || "",
-        state: parsed.state || "Rajasthan"
-      };
-    } catch (e) {}
-  }
-  
-  if (addressStr.includes("Line 1:")) {
-    const parts = addressStr.split(" | ");
-    const obj = { ...defaultObj };
-    parts.forEach(part => {
-      const partsOfPart = part.split(": ");
-      const key = partsOfPart[0];
-      const val = partsOfPart.slice(1).join(": ").trim();
-      if (key === "Line 1") obj.line1 = val;
-      else if (key === "Line 2") obj.line2 = val;
-      else if (key === "Landmark") obj.landmark = val;
-      else if (key === "City") obj.city = val;
-      else if (key === "State") obj.state = val;
-      else if (key === "Pincode") obj.pincode = val;
-    });
-    return obj;
-  }
-  
-  const pinMatch = addressStr.match(/\b\d{6}\b/);
-  const pin = pinMatch ? pinMatch[0] : "";
-  return { ...defaultObj, line1: addressStr, pincode: pin, state: pin ? getStateFromPincode(pin) : "Rajasthan" };
-}
-
-function formatDetailedAddress(obj) {
-  return `Line 1: ${obj.line1} | Line 2: ${obj.line2 || ""} | Landmark: ${obj.landmark || ""} | City: ${obj.city} | State: ${obj.state} | Pincode: ${obj.pincode}`;
-}
-
-function getHumanReadableAddress(addressStr) {
-  if (!addressStr) return "";
-  const parsed = parseDetailedAddress(addressStr);
-  if (!parsed.line1) return addressStr;
-  const parts = [
-    parsed.line1,
-    parsed.line2,
-    parsed.landmark,
-    parsed.city,
-    parsed.state ? `${parsed.state} - ${parsed.pincode}` : parsed.pincode
-  ].filter(p => p && p.trim().length > 0);
-  return parts.join(", ");
-}
-
-function calculateDistance(lat1, lon1, lat2, lon2) {
-  if (lat1 === null || lon1 === null || lat2 === null || lon2 === null) return 8.5;
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return Math.round(R * c * 100) / 100; // distance in km
-}
+import { COLORS } from "../lib/config.js";
+import {
+  getStateFromPincode,
+  parseDetailedAddress,
+  formatDetailedAddress,
+  getHumanReadableAddress,
+} from "../lib/address.js";
+import { calculateDistance } from "../lib/helpers.js";
 
 export default function CartPage({
   cart,

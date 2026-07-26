@@ -1,23 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   ChevronLeft, Package, Clock, Truck, CheckCircle2, AlertTriangle, Sparkles,
   Image as ImageIcon, ShoppingBag, Plus, Minus, ArrowRight, Clipboard, Copy,
   Search, ExternalLink, RefreshCw, Star, ArrowUpRight, HelpCircle, FileText
 } from "lucide-react";
 
-const COLORS = {
-  ivory:        "#FDF6EC",
-  ivoryDeep:    "#F0E4CE",
-  cream:        "#FFFFFF",
-  indigo:       "#3D1F5C",
-  turmeric:     "#E8980A",
-  madder:       "#D45A2A",
-  sage:         "#2E6B4A",
-  charcoal:     "#1A0E28",
-  charcoalSoft: "#6B4E8A",
-};
-
-const STAGES = ["Pending", "Confirmed", "Packed", "Out for delivery", "Delivered"];
+import { COLORS } from "../lib/config.js";
 
 export default function MyOrdersPanel({
   account,
