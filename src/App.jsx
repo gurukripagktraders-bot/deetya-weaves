@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef, useTransition, startTransition } from "react";
 import Papa from "papaparse";
 import {
   Search, RefreshCw, AlertTriangle, Image as ImageIcon, CheckCircle2, Plus, Minus,
@@ -518,6 +518,63 @@ function AdminPinInput({ onVerify, error, setError }) {
         Enter dashboard
       </button>
     </>
+  );
+}
+
+// ─────────────────────────────────────────────
+// SKELETON LOADING CARDS
+// ─────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div style={{ background: COLORS.cream, border: `1px solid ${COLORS.ivoryDeep}`, borderRadius: 16, padding: 14 }}>
+      <div className="skeleton-pulse" style={{ width: "100%", aspectRatio: "4/3", borderRadius: 10, marginBottom: 10 }}/>
+      <div className="skeleton-pulse" style={{ height: 14, width: "80%", marginBottom: 6 }}/>
+      <div className="skeleton-pulse" style={{ height: 11, width: "55%", marginBottom: 10 }}/>
+      <div className="skeleton-pulse" style={{ height: 16, width: "40%", marginBottom: 8 }}/>
+      <div className="skeleton-pulse" style={{ height: 32, width: "100%", borderRadius: 8 }}/>
+    </div>
+  );
+}
+
+function SkeletonGrid() {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 16 }}>
+      {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// TOAST NOTIFICATION
+// ─────────────────────────────────────────────
+function Toast({ message, type = "success", onDone }) {
+  const [exiting, setExiting] = React.useState(false);
+
+  React.useEffect(() => {
+    const t1 = setTimeout(() => setExiting(true), 2600);
+    const t2 = setTimeout(() => onDone && onDone(), 3000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, []);
+
+  const icon = type === "success" ? "✓" : type === "error" ? "✕" : "ℹ";
+  const iconBg = type === "success" ? COLORS.sage : type === "error" ? COLORS.madder : COLORS.turmeric;
+
+  return (
+    <div className={exiting ? "toast-exit" : "toast-enter"} style={{
+      position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)",
+      background: COLORS.charcoal, color: COLORS.ivory, borderRadius: 12,
+      padding: "12px 18px", display: "flex", alignItems: "center", gap: 10,
+      zIndex: 9999, boxShadow: "0 8px 32px rgba(26,14,40,0.35)",
+      fontFamily: "var(--sans)", fontSize: 13.5, fontWeight: 500,
+      whiteSpace: "nowrap", maxWidth: "90vw",
+    }}>
+      <div style={{ width: 24, height: 24, borderRadius: "50%", background: iconBg,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 13, color: "#fff", fontWeight: 700, flexShrink: 0 }}>
+        {icon}
+      </div>
+      {message}
+    </div>
   );
 }
 
@@ -1992,9 +2049,10 @@ function RetailerView({
   contactInfo,
   myOrders,
   search: propsSearch,
-  setSearch: propsSetSearch
+  setSearch: propsSetSearch,
+  showToast,
 }) {
-  const { items } = sheetData;
+  const { items, loading: sheetLoading, usingSample } = sheetData;
   const [localCart, setLocalCart] = useState({});
   const cart = propsCart !== undefined ? propsCart : localCart;
   const setCart = propsSetCart !== undefined ? propsSetCart : setLocalCart;
@@ -2080,7 +2138,7 @@ function RetailerView({
     let result = items.filter(p => {
       if (category !== "All" && p.category !== category) return false;
       if (subcategoryFilter && p.subcategory !== subcategoryFilter) return false;
-      if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (debouncedSearch && !p.name.toLowerCase().includes(debouncedSearch.toLowerCase())) return false;
       const minP = productMinPrice(p);
       if (priceBracket && (minP < priceBracket.min || minP > priceBracket.max)) return false;
       if (!priceBracket && priceMin && minP < parseFloat(priceMin)) return false;
@@ -2096,7 +2154,7 @@ function RetailerView({
     else if (sortBy === "weight_asc") result = [...result].sort((a, b) => (parseFloat(a.variants[0]?.weight) || 0) - (parseFloat(b.variants[0]?.weight) || 0));
     else if (sortBy === "weight_desc") result = [...result].sort((a, b) => (parseFloat(b.variants[0]?.weight) || 0) - (parseFloat(a.variants[0]?.weight) || 0));
     return result;
-  }, [items, category, subcategoryFilter, search, priceBracket, priceMin, priceMax, weightFilter, sizeFilter, inStockOnly, sortBy]);
+  }, [items, category, subcategoryFilter, search, debouncedSearch, priceBracket, priceMin, priceMax, weightFilter, sizeFilter, inStockOnly, sortBy]);
 
   const ITEMS_PER_PAGE = 24;
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
@@ -3136,7 +3194,7 @@ function RetailerView({
       <ThreadDivider />
 
       <div className="products-grid" style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(250px, 1fr))", gap:20 }}>
-        {paginatedFiltered.map(product => {
+        {paginatedFiltered.map((product, index) => {
           const selVId = selectedVariant[product.id] || product.variants.find(v => v.stock !== 0)?.id || product.variants[0].id;
           const variant = product.variants.find(v => v.id === selVId) || product.variants[0];
           const cartKey = product.id + "__" + variant.id;
@@ -3144,7 +3202,7 @@ function RetailerView({
           const outOfStock = variant.stock === 0;
           const hasVariants = product.variants.length > 1;
           return (
-            <div key={product.id} className="product-card" style={{ background: COLORS.cream, border:`1px solid ${product.isBestseller ? COLORS.turmeric+"44" : `${COLORS.charcoalSoft}18`}`, borderRadius:16, padding:16, position:"relative", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+            <div key={product.id} className="product-card" style={{ background: COLORS.cream, border:`1px solid ${product.isBestseller ? COLORS.turmeric+"44" : `${COLORS.charcoalSoft}18`}`, borderRadius:16, padding:16, position:"relative", display:"flex", flexDirection:"column", justifyContent:"space-between", animationDelay:`${Math.min(index * 50, 400)}ms` }}>
               <div>
                 {product.isBestseller && (
                   <div style={{ position:"absolute", top:12, left:12, background: COLORS.turmeric, color: COLORS.cream, fontSize:10, fontFamily:"var(--sans)", padding:"4px 10px", borderRadius:20, fontWeight:600, letterSpacing:0.5, zIndex:1, boxShadow: "0 2px 8px rgba(200, 147, 46, 0.2)" }}>⭐ BESTSELLER</div>
@@ -3200,7 +3258,7 @@ function RetailerView({
                     {!outOfStock && (
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, background: COLORS.ivoryDeep, borderRadius:8, padding:"6px 8px" }}>
                         <button onClick={() => setQty(product, variant, -1)} disabled={qty===0} style={{ border:"none", background:"transparent", cursor: qty===0 ? "default":"pointer", color: qty===0 ? COLORS.charcoalSoft+"55" : COLORS.indigo, display:"flex" }}><Minus size={15}/></button>
-                        <span style={{ fontSize:13.5, color: COLORS.charcoal, minWidth:30, textAlign:"center", fontWeight: 600 }}>{qty}</span>
+                        <span key={`qty-${cartKey}-${qty}`} className={qty > 0 ? "qty-pop" : ""} style={{ fontSize:13.5, color: COLORS.charcoal, minWidth:30, textAlign:"center", fontWeight: 600 }}>{qty}</span>
                         <button onClick={() => setQty(product, variant, 1)} style={{ border:"none", background:"transparent", cursor:"pointer", color: COLORS.indigo, display:"flex" }}><Plus size={15}/></button>
                       </div>
                     )}
@@ -4770,6 +4828,8 @@ export default function HandloomB2BApp() {
   const [activePage, setActivePage] = useState(initialRoute.page); // "catalog" or "profile"
   const isAdmin = account?.is_admin === true;
   const [showQuickLogin, setShowQuickLogin] = useState(false);
+  const [toast, setToast] = useState(null); // { message, type }
+  const showToast = (message, type = "success") => setToast({ message, type });
   const filterConfig = useFilterSettings();
 
   const systemFooter = useMemo(() => {
@@ -4897,6 +4957,12 @@ export default function HandloomB2BApp() {
     } catch {}
   }, [activePage, viewingCart]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  // Debounce search to fix INP — only filter after user stops typing 200ms
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 200);
+    return () => clearTimeout(t);
+  }, [search]);
   const [showSearchInput, setShowSearchInput] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [myOrders, setMyOrders] = useState([]);
@@ -4960,7 +5026,69 @@ export default function HandloomB2BApp() {
         * { box-sizing: border-box; margin: 0; padding: 0; }
         input::placeholder, select { font-family: var(--sans); }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
+
+        /* ── ANIMATION SYSTEM ── */
+
+        /* Skeleton shimmer */
+        @keyframes shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+        .skeleton-pulse {
+          background: linear-gradient(90deg, #F0E4CE 25%, #FDF6EC 50%, #F0E4CE 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.6s ease-in-out infinite;
+          border-radius: 6px;
+        }
+
+        /* Stagger card entry */
+        @keyframes cardIn {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .product-card {
+          animation: cardIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+
+        /* Price reveal when logging in */
+        @keyframes priceReveal {
+          from { opacity: 0; transform: scale(0.75) translateY(6px); filter: blur(4px); }
+          to   { opacity: 1; transform: scale(1) translateY(0);      filter: blur(0); }
+        }
+        .price-revealed {
+          animation: priceReveal 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        /* Quantity number pop */
+        @keyframes qtyPop {
+          0%   { transform: scale(0.7); }
+          60%  { transform: scale(1.2); }
+          100% { transform: scale(1); }
+        }
+        .qty-pop {
+          animation: qtyPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        /* Filter chip spring */
+        .filter-chip {
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        .filter-chip:hover {
+          transform: scale(1.06) !important;
+        }
+
+        /* Toast slide-up */
+        @keyframes toastIn {
+          from { transform: translateY(24px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+        @keyframes toastOut {
+          from { transform: translateY(0);    opacity: 1; }
+          to   { transform: translateY(24px); opacity: 0; }
+        }
+        .toast-enter { animation: toastIn  0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        .toast-exit  { animation: toastOut 0.3s  cubic-bezier(0.4, 0, 1, 1)          both; }
+
         /* Custom scrollbars for a premium visual theme */
         ::-webkit-scrollbar {
           width: 8px;
@@ -4983,8 +5111,8 @@ export default function HandloomB2BApp() {
         }
         .product-card:hover {
           transform: translateY(-4px);
-          box-shadow: 0 12px 28px rgba(42,36,29,0.06);
-          border-color: ${COLORS.indigo}25 !important;
+          box-shadow: 0 12px 32px rgba(61,31,92,0.14);
+          border-color: ${COLORS.indigo}44 !important;
         }
 
         /* Image hover zoom inside card */
