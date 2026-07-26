@@ -703,6 +703,7 @@ export default function HandloomB2BApp() {
                   myOrders={myOrders}
                   search={search}
                   setSearch={setSearch}
+                  debouncedSearch={debouncedSearch}
                 />
               )}
             </motion.div>

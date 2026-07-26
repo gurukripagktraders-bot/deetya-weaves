@@ -29,6 +29,7 @@ export default function RetailerView({
   myOrders,
   search: propsSearch,
   setSearch: propsSetSearch,
+  debouncedSearch: propsDebouncedSearch,
   showToast,
 }) {
   const { items, loading: sheetLoading, usingSample } = sheetData;
@@ -39,6 +40,7 @@ export default function RetailerView({
   const [selectedVariant, setSelectedVariant] = useState({});
   const [localSearch, setLocalSearch] = useState("");
   const search = propsSearch !== undefined ? propsSearch : localSearch;
+  const debouncedSearch = propsDebouncedSearch !== undefined ? propsDebouncedSearch : search;
   const setSearch = propsSetSearch !== undefined ? propsSetSearch : setLocalSearch;
   const [showSearchInput, setShowSearchInput] = useState(false);
   const [category, setCategory] = useState("All");
