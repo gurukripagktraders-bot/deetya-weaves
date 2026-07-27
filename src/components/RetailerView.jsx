@@ -185,15 +185,19 @@ export default function RetailerView({
   }, 0);
 
   const discountAmount = couponResult?.valid ? couponResult.discount : 0;
-  
-  // GST calculation (priceW is exclusive of GST)
+
+  // GST calculation — priceW from the sheet is GST-INCLUSIVE (the final
+  // selling price), so gstAmount below is the tax portion *within* that
+  // price for invoice/record purposes. It is not added on top of the total.
   const gstAmountBeforeDiscount = cartEntries.reduce((sum, [key, qty]) => {
     const [productId, variantId] = key.split("__");
     const product = items.find(p => p.id === productId);
     const variant = product?.variants.find(v => v.id === variantId);
     if (!variant) return sum;
     const gstPct = variant.gstPct || product?.gstPct || 5;
-    return sum + (variant.priceW * qty * (gstPct / 100));
+    const inclusiveLineTotal = variant.priceW * qty;
+    const baseLineTotal = inclusiveLineTotal / (1 + gstPct / 100);
+    return sum + (inclusiveLineTotal - baseLineTotal);
   }, 0);
 
   const effectiveGstRatio = subtotal > 0 ? (gstAmountBeforeDiscount / subtotal) : 0.05;
@@ -208,7 +212,10 @@ export default function RetailerView({
        : 8.5);
 
   const deliveryFee = activeDistance > 7 ? 30 : 0;
-  const cartTotal = taxableAmount + gstAmount + deliveryFee;
+  // taxableAmount already has GST baked in (it comes straight from the
+  // sheet's GST-inclusive price), so gstAmount is informational only here —
+  // it is NOT added again.
+  const cartTotal = taxableAmount + deliveryFee;
 
   const applyCoupon = async (customCode) => {
     const codeToApply = (typeof customCode === "string" ? customCode : couponCode).trim().toUpperCase();

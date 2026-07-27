@@ -1,9 +1,12 @@
-// GST & DISTANCE HELPERS (price is exclusive of GST)
+// GST & DISTANCE HELPERS
 // =============================================
-export function calcGST(exclusivePrice, gstPct) {
-  const base = exclusivePrice;
-  const gst = exclusivePrice * (gstPct / 100);
-  return { base: Math.round(base * 100) / 100, gst: Math.round(gst * 100) / 100, total: Math.round((base + gst) * 100) / 100 };
+// Sheet prices are GST-INCLUSIVE (the final selling price already has GST
+// baked in), so this extracts the tax portion for invoice display — it does
+// NOT add anything on top of the price the retailer is shown.
+export function calcGST(inclusivePrice, gstPct) {
+  const base = inclusivePrice / (1 + gstPct / 100);
+  const gst = inclusivePrice - base;
+  return { base: Math.round(base * 100) / 100, gst: Math.round(gst * 100) / 100, total: Math.round(inclusivePrice * 100) / 100 };
 }
 
 export function calculateDistance(lat1, lon1, lat2, lon2) {

@@ -1360,8 +1360,8 @@ export default function CartPage({
                 </div>
               )}
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>GST (Added on top)</span>
-                <span style={{ color: COLORS.cream }}>+ ₹{gstAmount.toLocaleString("en-IN")}</span>
+                <span>Includes GST</span>
+                <span style={{ color: "rgba(255,255,255,0.55)" }}>₹{gstAmount.toLocaleString("en-IN")}</span>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>Standard Delivery Fee</span>
