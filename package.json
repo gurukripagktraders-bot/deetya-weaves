@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
     "lucide-react": "^0.383.0",
     "motion": "^12.42.2",
     "papaparse": "^5.4.1",

@@ -1,26 +1,17 @@
 import React, { useState } from "react";
 import { Clock, Phone, ShieldCheck, ChevronLeft } from "lucide-react";
-import { COLORS, ADMIN_PIN, MOCK_OTP } from "../lib/config.js";
+import { COLORS, MOCK_OTP } from "../lib/config.js";
 import { supabase } from "../lib/db.js";
 import { PhoneInput, SubmitBtn } from "./ui/atoms.jsx";
 
 export default function LoginScreen({ onLogin }) {
-  const [step, setStep] = useState("phone"); // phone, otp, register, pending, pending_existing, admin
+  const [step, setStep] = useState("phone"); // phone, otp, register, pending, pending_existing
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [shopName, setShopName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [adminPin, setAdminPin] = useState("");
-
-  const verifyAdmin = () => {
-    if (adminPin === ADMIN_PIN) {
-      onLogin({ id: "admin", phone: "admin", shop_name: "Guru Kripa Traders", owner_name: "Admin", is_admin: true });
-    } else {
-      setError("Incorrect PIN.");
-    }
-  };
 
   const sendOtp = () => {
     if (!/^\d{10}$/.test(phone)) { setError("Enter a valid 10-digit phone number."); return; }
@@ -52,14 +43,6 @@ export default function LoginScreen({ onLogin }) {
       setStep("pending");
     } catch (e) { setError("Could not submit. Try again."); }
     finally { setSaving(false); }
-  };
-
-  const verifyAdminPin = (pin) => {
-    if (pin === ADMIN_PIN) {
-      onLogin({ id: "admin", phone: "admin", shop_name: "Guru Kripa Traders", owner_name: "Admin", is_admin: true });
-    } else {
-      setError("Incorrect PIN.");
-    }
   };
 
   return (
@@ -126,33 +109,6 @@ export default function LoginScreen({ onLogin }) {
           </div>
         )}
 
-        {step === "admin" && (
-          <>
-            <button onClick={() => { setStep("phone"); setError(""); }} style={{ background:"none", border:"none", color: COLORS.charcoalSoft, fontSize: 12, cursor:"pointer", display:"flex", alignItems:"center", gap:4, marginBottom:12, padding:0 }}>
-              <ChevronLeft size={13}/> Back
-            </button>
-            <div style={{ fontSize: 13, color: COLORS.charcoalSoft, marginBottom: 14 }}>Enter your seller PIN to access the dashboard.</div>
-            <PhoneInput
-              type="password"
-              value={adminPin}
-              onChange={e => setAdminPin(e.target.value)}
-              placeholder="Seller PIN"
-            />
-            {error && <div style={{ color: COLORS.madder, fontSize: 12, marginBottom: 10 }}>{error}</div>}
-            <SubmitBtn onClick={verifyAdmin}>Access dashboard</SubmitBtn>
-          </>
-        )}
-
-        {step !== "admin" && step !== "pending" && step !== "pending_existing" && (
-          <div style={{ textAlign: "center", marginTop: 20 }}>
-            <button
-              onClick={() => { setStep("admin"); setError(""); }}
-              style={{ background: "none", border: "none", color: COLORS.charcoalSoft + "88", fontSize: 11, cursor: "pointer", textDecoration: "underline" }}
-            >
-              Seller / Admin login
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

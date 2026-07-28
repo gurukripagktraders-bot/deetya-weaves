@@ -4,6 +4,8 @@ import {
   Search, LayoutGrid, Clock, LogOut, User, ShoppingCart, Plus,
 } from "lucide-react";
 import { COLORS } from "./lib/config.js";
+import { supabase } from "./lib/db.js";
+import { supabaseClient } from "./lib/supabaseClient.js";
 import { useFilterSettings } from "./hooks/useFilterSettings.js";
 import { useSheetData } from "./hooks/useSheetData.js";
 import { SyncBar, Toast } from "./components/ui/atoms.jsx";
@@ -207,11 +209,6 @@ export default function HandloomB2BApp() {
   const [isAdminPath, setIsAdminPath] = useState(() => {
     return window.location.pathname === "/admin" || window.location.search.includes("admin") || window.location.hostname.includes("admin");
   });
-
-  const handleGoToAdmin = () => {
-    setIsAdminPath(true);
-    try { window.history.pushState({}, "", "/admin"); } catch {}
-  };
 
   const handleBackToCatalog = () => {
     setIsAdminPath(false);
@@ -602,7 +599,7 @@ export default function HandloomB2BApp() {
 
             {/* Log Out Button */}
             {account && (
-              <button onClick={() => { setAccount(null); setActivePage("catalog"); setViewingCart(false); try { localStorage.removeItem("deetya_account"); } catch {} if (isAdmin) handleBackToCatalog(); }}
+              <button onClick={() => { setAccount(null); setActivePage("catalog"); setViewingCart(false); try { localStorage.removeItem("deetya_account"); } catch {} if (isAdmin) { supabaseClient.auth.signOut(); handleBackToCatalog(); } }}
                 className="hide-mobile"
                 style={{ display:"flex", alignItems:"center", gap:5, background:"transparent", border:`1px solid ${COLORS.charcoalSoft}33`, borderRadius:8, padding:"7px 10px", fontSize:12, cursor:"pointer", color: COLORS.charcoalSoft, fontFamily:"var(--sans)" }}>
                 <LogOut size={13}/> Log out
@@ -667,6 +664,7 @@ export default function HandloomB2BApp() {
                   contactInfo={contactInfo}
                   setActivePage={setActivePage}
                   onLogOut={() => {
+                    if (isAdmin) supabaseClient.auth.signOut();
                     setAccount(null);
                     setActivePage("catalog");
                     setViewingCart(false);

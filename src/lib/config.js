@@ -9,7 +9,14 @@ export const DEFAULT_CSV_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQUtvYNbIkmNe5WyOBVo5B1O5mxl8YY8Wt4IS0nzsD1Lnao9nKP23UWadAm8gAF4RbftwNnSAwQk5nc/pub?output=csv";
 
 export const MOCK_OTP = "1234"; // Replace with real SMS OTP service later
-export const ADMIN_PIN = "GKT@2024"; // Change this to your own secret PIN
+// Admin/seller access is now via Google Sign-In (Supabase Auth) instead of a
+// shared PIN. Only these email addresses are allowed into the admin/seller
+// dashboard — add every email that should have access. This is a first line
+// of defense on the client; the real enforcement lives in your Supabase RLS
+// policies (see the RLS setup notes you were given separately).
+export const ADMIN_EMAILS = [
+  "gurukripa.gktraders@gmail.com",
+];
 
 export const COLORS = {
   // Backgrounds — warm desert sand
