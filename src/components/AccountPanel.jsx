@@ -13,12 +13,12 @@ export default function AccountPanel({ account, orders, onClose, onAccountUpdate
   const [formName, setFormName] = useState(account.owner_name || "");
   const [formShopName, setFormShopName] = useState(account.shop_name || "");
   const [formGstNumber, setFormGstNumber] = useState(account.gst_number || "");
-  const [formAddrLine1, setFormAddrLine1] = useState(() => parseDetailedAddress(account.detailed_address).line1 || "");
-  const [formAddrLine2, setFormAddrLine2] = useState(() => parseDetailedAddress(account.detailed_address).line2 || "");
-  const [formAddrLandmark, setFormAddrLandmark] = useState(() => parseDetailedAddress(account.detailed_address).landmark || "");
-  const [formAddrPincode, setFormAddrPincode] = useState(() => parseDetailedAddress(account.detailed_address).pincode || "");
-  const [formAddrCity, setFormAddrCity] = useState(() => parseDetailedAddress(account.detailed_address).city || "");
-  const [formAddrState, setFormAddrState] = useState(() => parseDetailedAddress(account.detailed_address).state || "Rajasthan");
+  const [formAddrLine1, setFormAddrLine1] = useState(() => parseDetailedAddress(account.address).line1 || "");
+  const [formAddrLine2, setFormAddrLine2] = useState(() => parseDetailedAddress(account.address).line2 || "");
+  const [formAddrLandmark, setFormAddrLandmark] = useState(() => parseDetailedAddress(account.address).landmark || "");
+  const [formAddrPincode, setFormAddrPincode] = useState(() => parseDetailedAddress(account.address).pincode || "");
+  const [formAddrCity, setFormAddrCity] = useState(() => parseDetailedAddress(account.address).city || "");
+  const [formAddrState, setFormAddrState] = useState(() => parseDetailedAddress(account.address).state || "Rajasthan");
   const [formPhone, setFormPhone] = useState(account.phone || "");
   const [formEmail, setFormEmail] = useState(account.email || "");
   
@@ -176,32 +176,22 @@ export default function AccountPanel({ account, orders, onClose, onAccountUpdate
       pincode: formAddrPincode.trim()
     });
 
+    // NOTE: your retailers table only has phone, shop_name, owner_name,
+    // and address as editable columns today — email, gst_number,
+    // email_verified, and phone_verified aren't columns in the database
+    // yet, so they're kept in local UI state only and won't survive a
+    // page reload until those columns are added (ask if you want that).
     const updatedFields = {
       shop_name: formShopName,
       owner_name: formName,
       phone: formPhone,
-      email: formEmail,
-      gst_number: formGstNumber,
-      detailed_address: formattedAddr,
-      email_verified: emailVerified,
-      phone_verified: phoneVerified,
+      address: formattedAddr,
     };
 
     try {
-      let updatedData;
-      try {
-        const rows = await supabase(`retailers?id=eq.${account.id}`, "PATCH", updatedFields);
-        updatedData = rows && rows[0] ? rows[0] : { ...account, ...updatedFields };
-      } catch (err) {
-        console.warn("Falling back on standard database save", err);
-        const fallbackFields = {
-          shop_name: formShopName,
-          owner_name: formName,
-          phone: formPhone,
-        };
-        await supabase(`retailers?id=eq.${account.id}`, "PATCH", fallbackFields);
-        updatedData = { ...account, ...updatedFields };
-      }
+      const rows = await supabase(`retailers?id=eq.${account.id}`, "PATCH", updatedFields);
+      const savedRow = rows && rows[0] ? rows[0] : updatedFields;
+      const updatedData = { ...account, ...savedRow, email: formEmail, gst_number: formGstNumber, email_verified: emailVerified, phone_verified: phoneVerified };
 
       onAccountUpdated(updatedData);
       setIsEditing(false);
@@ -446,7 +436,7 @@ export default function AccountPanel({ account, orders, onClose, onAccountUpdate
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <span style={{ fontSize: 12.5, color: COLORS.charcoalSoft }}>Detailed Address</span>
-                  <span style={{ fontSize: 13, color: COLORS.charcoal, background: COLORS.ivory, padding: 8, borderRadius: 6, lineHeight: 1.4 }}>{getHumanReadableAddress(account.detailed_address) || "No address provided yet. Please click 'Update Details' to add your address."}</span>
+                  <span style={{ fontSize: 13, color: COLORS.charcoal, background: COLORS.ivory, padding: 8, borderRadius: 6, lineHeight: 1.4 }}>{getHumanReadableAddress(account.address) || "No address provided yet. Please click 'Update Details' to add your address."}</span>
                 </div>
               </div>
             )}

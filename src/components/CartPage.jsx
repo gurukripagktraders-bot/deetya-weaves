@@ -51,8 +51,8 @@ export default function CartPage({
   const [cartAddrPincode, setCartAddrPincode] = useState("");
   const [cartAddrCity, setCartAddrCity] = useState("");
   const [cartAddrState, setCartAddrState] = useState("Rajasthan");
-  const [isEditingAddress, setIsEditingAddress] = useState(!account?.detailed_address);
-  const [isAddressConfirmed, setIsAddressConfirmed] = useState(!!account?.detailed_address);
+  const [isEditingAddress, setIsEditingAddress] = useState(!account?.address);
+  const [isAddressConfirmed, setIsAddressConfirmed] = useState(!!account?.address);
   const [addressError, setAddressError] = useState("");
   const [savingAddress, setSavingAddress] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -85,8 +85,8 @@ export default function CartPage({
 
   // Sync state with account updates
   useEffect(() => {
-    if (account?.detailed_address) {
-      const parsed = parseDetailedAddress(account.detailed_address);
+    if (account?.address) {
+      const parsed = parseDetailedAddress(account.address);
       setCartAddrLine1(parsed.line1 || "");
       setCartAddrLine2(parsed.line2 || "");
       setCartAddrLandmark(parsed.landmark || "");
@@ -225,15 +225,15 @@ export default function CartPage({
 
     try {
       await supabase(`retailers?id=eq.${account.id}`, "PATCH", {
-        detailed_address: formattedAddr
+        address: formattedAddr
       });
-      const updated = { ...account, detailed_address: formattedAddr };
+      const updated = { ...account, address: formattedAddr };
       if (onAccountUpdated) onAccountUpdated(updated);
       setIsEditingAddress(false);
       setIsAddressConfirmed(true);
     } catch (e) {
       console.error("Error saving address:", e);
-      const updated = { ...account, detailed_address: formattedAddr };
+      const updated = { ...account, address: formattedAddr };
       if (onAccountUpdated) onAccountUpdated(updated);
       setIsEditingAddress(false);
       setIsAddressConfirmed(true);
@@ -884,10 +884,10 @@ export default function CartPage({
                   >
                     {savingAddress ? "Saving..." : "Save & Confirm Address"}
                   </button>
-                  {account?.detailed_address && (
+                  {account?.address && (
                     <button
                       onClick={() => {
-                        const parsed = parseDetailedAddress(account.detailed_address);
+                        const parsed = parseDetailedAddress(account.address);
                         setCartAddrLine1(parsed.line1 || "");
                         setCartAddrLine2(parsed.line2 || "");
                         setCartAddrLandmark(parsed.landmark || "");
@@ -922,7 +922,7 @@ export default function CartPage({
                     </div>
                     <p style={{ fontSize: 13.5, color: COLORS.charcoal, fontWeight: 600, margin: 0 }}>{account?.shop_name}</p>
                     <p style={{ fontSize: 12.5, color: COLORS.charcoalSoft, marginTop: 3, fontStyle: "italic", lineHeight: 1.4 }}>
-                      {getHumanReadableAddress(account?.detailed_address)}
+                      {getHumanReadableAddress(account?.address)}
                     </p>
                     <p style={{ fontSize: 11.5, color: COLORS.charcoalSoft, marginTop: 3 }}>
                       Contact: +91 {account?.phone} ({account?.owner_name})

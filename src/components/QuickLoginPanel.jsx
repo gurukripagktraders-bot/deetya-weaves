@@ -63,38 +63,21 @@ export default function QuickLoginPanel({ onLogin, onClose }) {
       pincode: addrPincode.trim()
     });
 
+    // NOTE: status/credit_limit/credit_used are intentionally left out —
+    // they keep their database defaults ('pending', 0, 0) and can only be
+    // changed by an admin from the Seller Dashboard. gst_number, email,
+    // and the verified flags aren't columns in the database yet (see
+    // AccountPanel.jsx for the same note) so they're left off too.
     const payload = {
       phone,
       shop_name: shopName,
       owner_name: ownerName,
-      detailed_address: formattedAddr,
-      gst_number: gstNumber,
-      email: email,
-      status: "approved",
-      credit_limit: 0,
-      credit_used: 0,
-      phone_verified: true,
-      email_verified: false
+      address: formattedAddr,
     };
 
     try {
-      let retailer;
-      try {
-        const rows = await supabase("retailers", "POST", payload);
-        retailer = rows && rows[0] ? rows[0] : payload;
-      } catch (dbErr) {
-        console.warn("DB columns missing in Supabase, using fallback for sign up", dbErr);
-        const fallbackPayload = {
-          phone,
-          shop_name: shopName,
-          owner_name: ownerName,
-          status: "approved",
-          credit_limit: 0,
-          credit_used: 0
-        };
-        const rows = await supabase("retailers", "POST", fallbackPayload);
-        retailer = { ...(rows && rows[0] ? rows[0] : fallbackPayload), ...payload };
-      }
+      const rows = await supabase("retailers", "POST", payload);
+      const retailer = rows && rows[0] ? rows[0] : payload;
       onLogin({ ...retailer, is_admin: false });
     } catch (e) { 
       setError("Could not save details. Try again."); 
