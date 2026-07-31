@@ -52,59 +52,84 @@ export default function RetailerView({
     try { return new URLSearchParams(window.location.search).get("subcategory") || ""; } catch { return ""; }
   });
 
-  // Keep category/subcategory in the URL so a page refresh (or sharing the
-  // link) lands back on the same filtered view instead of resetting to "All".
+  // --- URL / browser-history sync for category, subcategory, and the open
+  // product panel. These three are kept in sync together (not as separate
+  // effects) so they can't race or double-push against each other.
+  //
+  // - Selecting a category/subcategory, or opening a product, PUSHES a new
+  //   history entry — so the back button undoes one step at a time, the way
+  //   people expect. (An earlier version of this used replaceState, which
+  //   meant there was nothing for "back" to undo, so on mobile it exited
+  //   the site entirely after just one selection, and on desktop it took
+  //   several presses to get anywhere since most "steps" weren't real
+  //   history entries at all.)
+  // - Pressing back/forward re-reads the URL and restores all three pieces
+  //   of state together, so the visible category/subcategory/product
+  //   actually changes when you navigate — not just the URL bar.
+  const isPoppingRef = React.useRef(false);
+  const isFirstUrlSyncRef = React.useRef(true);
+  // If the page loaded with a ?product= param, hold off syncing state back
+  // to the URL until that's been resolved — otherwise the sync effect below
+  // can wipe the param out before the async restoration (which waits for
+  // the real catalog to load) ever gets a chance to read it.
+  const pendingRestoreRef = React.useRef(
+    (() => { try { return !!new URLSearchParams(window.location.search).get("product"); } catch { return false; } })()
+  );
+
+  const applyStateFromUrl = React.useCallback(() => {
+    isPoppingRef.current = true;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      setCategory(params.get("category") || "All");
+      setSubcategoryFilter(params.get("subcategory") || "");
+      const productId = params.get("product");
+      if (productId && items && items.length > 0) {
+        const found = items.find((p) => p.id === productId);
+        setSelectedProduct(found || null);
+      } else if (!productId) {
+        setSelectedProduct(null);
+      }
+    } catch {}
+  }, [items]);
+
   useEffect(() => {
+    window.addEventListener("popstate", applyStateFromUrl);
+    return () => window.removeEventListener("popstate", applyStateFromUrl);
+  }, [applyStateFromUrl]);
+
+  // Restore a product from the URL on initial load too (e.g. a refresh, or
+  // a shared product link) — not just on back/forward. Waits for the real
+  // catalog (not the placeholder sample data) before trying to match the id.
+  const restoredOnLoadRef = React.useRef(false);
+  useEffect(() => {
+    if (restoredOnLoadRef.current || usingSample || !items || items.length === 0) return;
+    restoredOnLoadRef.current = true;
+    if (pendingRestoreRef.current) applyStateFromUrl();
+    pendingRestoreRef.current = false;
+  }, [items, usingSample, applyStateFromUrl]);
+
+  useEffect(() => {
+    if (pendingRestoreRef.current) return; // don't touch the URL until the line above resolves
+    if (isPoppingRef.current) { isPoppingRef.current = false; return; }
     try {
       const params = new URLSearchParams(window.location.search);
       if (category && category !== "All") params.set("category", category); else params.delete("category");
       if (subcategoryFilter) params.set("subcategory", subcategoryFilter); else params.delete("subcategory");
+      if (selectedProduct) params.set("product", selectedProduct.id); else params.delete("product");
       const newSearch = params.toString();
       const newUrl = `${window.location.pathname}${newSearch ? "?" + newSearch : ""}${window.location.hash}`;
-      window.history.replaceState(window.history.state, "", newUrl);
-    } catch {}
-  }, [category, subcategoryFilter]);
-
-  // Restore the open product panel from the URL once the catalog has
-  // loaded, so refreshing while viewing a product stays on that product
-  // instead of bouncing back to the catalog root.
-  const restoredProductRef = React.useRef(false);
-  useEffect(() => {
-    if (restoredProductRef.current || usingSample || !items || items.length === 0) return;
-    restoredProductRef.current = true;
-    try {
-      const productId = new URLSearchParams(window.location.search).get("product");
-      if (productId) {
-        const found = items.find((p) => p.id === productId);
-        if (found) setSelectedProduct(found);
-      }
-    } catch {}
-  }, [items, usingSample]);
-
-  // Mobile back button: push history when panel opens, intercept popstate to close
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      if (selectedProduct) {
-        params.set("product", selectedProduct.id);
+      if (newUrl === window.location.pathname + window.location.search + window.location.hash) return;
+      if (isFirstUrlSyncRef.current) {
+        // Initial mount: the URL already reflects this state (that's where
+        // we read it from) — replace rather than push, so simply loading
+        // the page doesn't create a phantom back-button step.
+        isFirstUrlSyncRef.current = false;
+        window.history.replaceState({}, "", newUrl);
       } else {
-        params.delete("product");
-      }
-      const newSearch = params.toString();
-      const newUrl = `${window.location.pathname}${newSearch ? "?" + newSearch : ""}${window.location.hash}`;
-      if (selectedProduct) {
-        window.history.pushState({ panel: "product" }, "", newUrl);
-      } else {
-        window.history.replaceState(window.history.state, "", newUrl);
+        window.history.pushState({}, "", newUrl);
       }
     } catch {}
-
-    if (selectedProduct) {
-      const onPop = () => setSelectedProduct(null);
-      window.addEventListener("popstate", onPop);
-      return () => window.removeEventListener("popstate", onPop);
-    }
-  }, [selectedProduct]);
+  }, [category, subcategoryFilter, selectedProduct]);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const [expandedMobileCategories, setExpandedMobileCategories] = useState({});
