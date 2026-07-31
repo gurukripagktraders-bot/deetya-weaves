@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CheckCircle2, Clock, RefreshCw, AlertTriangle, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Clock, RefreshCw, AlertTriangle, ShieldCheck, Image as ImageIcon } from "lucide-react";
 import { COLORS, STAGES } from "../../lib/config.js";
 
 // UI COMPONENTS
@@ -154,6 +154,21 @@ export function Toast({ message, type = "success", onDone }) {
       {message}
     </div>
   );
+}
+
+// Shows a product/order image, falling back to a placeholder icon if the
+// src is missing OR fails to load (e.g. a dead Google Drive link) — instead
+// of the browser's default broken-image icon.
+export function ImageWithFallback({ src, alt, style, iconSize = 18, referrerPolicy }) {
+  const [errored, setErrored] = useState(false);
+  if (!src || errored) {
+    return (
+      <div style={{ ...style, display: "flex", alignItems: "center", justifyContent: "center", background: COLORS.ivoryDeep }}>
+        <ImageIcon size={iconSize} color={COLORS.charcoalSoft + "55"} />
+      </div>
+    );
+  }
+  return <img src={src} alt={alt} style={style} referrerPolicy={referrerPolicy} onError={() => setErrored(true)} />;
 }
 
 // =============================================

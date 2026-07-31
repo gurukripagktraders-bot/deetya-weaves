@@ -17,6 +17,7 @@ export function useFilterSettings() {
     ],
   });
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
     supabase("filter_settings?id=eq.main&select=*")
@@ -53,10 +54,10 @@ export function useFilterSettings() {
       }
       await supabase("filter_settings?id=eq.main", "PATCH", { ...payload, updated_at: new Date().toISOString() });
       setSettings(payload);
-    } catch (e) { alert("Could not save filter settings: " + e.message); }
+    } catch (e) { setSaveError(e.message); }
     finally { setSaving(false); }
   };
 
-  return { settings: cleanSettings, rawSettings: settings, setSettings, save, saving };
+  return { settings: cleanSettings, rawSettings: settings, setSettings, save, saving, saveError };
 }
 

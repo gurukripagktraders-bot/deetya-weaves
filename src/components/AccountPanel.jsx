@@ -40,8 +40,6 @@ export default function AccountPanel({ account, orders, onClose, onAccountUpdate
   const [expandedOrder, setExpandedOrder] = useState(null);
   const [orderItems, setOrderItems] = useState({});
 
-  const pct = account.credit_limit > 0 ? Math.round((account.credit_used / account.credit_limit) * 100) : 0;
-
   // Handle phone input changes
   const handlePhoneChange = (val) => {
     const clean = val.replace(/\D/g, "").slice(0, 10);
@@ -101,8 +99,7 @@ export default function AccountPanel({ account, orders, onClose, onAccountUpdate
     setTimeout(() => {
       setEmailVerifying(false);
       setShowEmailOtp(true);
-      alert(`[Deetya Weaves Email Verification Code]\nYour verification code is: ${code}`);
-      setEmailMessage(`Verification code sent. Use '${code}' (alert shown)`);
+      setEmailMessage(`Verification code: ${code} (demo mode — no real email is sent yet)`);
     }, 600);
   };
 
@@ -455,10 +452,10 @@ export default function AccountPanel({ account, orders, onClose, onAccountUpdate
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 160, overflowY: "auto", paddingRight: 4 }}>
                   {orders.map(o => (
-                    <div key={o.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, padding: "8px 10px", background: COLORS.cream, borderRadius: 6, borderLeft: `3px solid ${o.payment_type === "credit" ? COLORS.turmeric : COLORS.sage}` }}>
+                    <div key={o.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, padding: "8px 10px", background: COLORS.cream, borderRadius: 6, borderLeft: `3px solid ${o.payment_type === "COD" ? COLORS.turmeric : COLORS.sage}` }}>
                       <div>
                         <strong style={{ color: COLORS.charcoal }}>Order #{o.order_number}</strong>
-                        <div style={{ fontSize: 10.5, color: COLORS.charcoalSoft }}>{new Date(o.created_at).toLocaleDateString("en-IN")} · {o.payment_type === "credit" ? "Credit Charge" : "Direct Settlement"}</div>
+                        <div style={{ fontSize: 10.5, color: COLORS.charcoalSoft }}>{new Date(o.created_at).toLocaleDateString("en-IN")} · {o.payment_type === "COD" ? "Cash on Delivery" : "Bank/QR Payment"}</div>
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <span style={{ fontWeight: 600, color: COLORS.charcoal, fontFamily: "var(--sans)" }}>₹{o.total?.toLocaleString("en-IN")}</span>

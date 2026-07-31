@@ -456,7 +456,7 @@ export default function MyOrdersPanel({
                         <AlertTriangle size={18} />
                         <div>
                           <strong style={{ fontSize: 13, display: "block" }}>Order Cancelled</strong>
-                          <span style={{ fontSize: 12, color: COLORS.charcoalSoft }}>This consignment was cancelled. Credit limit checks or manual cancellation reason applies. Please contact help desk.</span>
+                          <span style={{ fontSize: 12, color: COLORS.charcoalSoft }}>This consignment was cancelled. Please contact the help desk for the reason.</span>
                         </div>
                       </div>
                     )}

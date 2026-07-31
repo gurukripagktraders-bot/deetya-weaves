@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { COLORS, STAGES } from "../lib/config.js";
 import { supabase } from "../lib/db.js";
-import { StatCard, ThreadDivider, WeavingProgress } from "./ui/atoms.jsx";
+import { StatCard, ThreadDivider, WeavingProgress, Toast } from "./ui/atoms.jsx";
 
 // SELLER DASHBOARD
 // =============================================
@@ -30,6 +30,10 @@ export default function SellerView({
   
   // Tabs state
   const [activeTab, setActiveTab] = useState("overview"); // "overview", "sellers", "offers", "dispatch", "footer_settings"
+
+  // Toast notifications (replaces native alert() popups)
+  const [toast, setToast] = useState(null); // { message, type }
+  const showToast = (message, type = "success") => setToast({ message, type });
   
   // Footer and Terms state
   const [localAboutUs, setLocalAboutUs] = useState("");
@@ -56,8 +60,6 @@ export default function SellerView({
   const [searchSeller, setSearchSeller] = useState("");
   const [sellerStatusFilter, setSellerStatusFilter] = useState("All"); // All | Approved | Pending | Rejected
   const [expandedRetailerHistory, setExpandedRetailerHistory] = useState(null); // retailerId
-  const [tempLimits, setTempLimits] = useState({}); // retailerId -> tempLimitString
-  const [updatingLimitId, setUpdatingLimitId] = useState(null);
 
   // Discount code form
   const [dcCode, setDcCode] = useState("");
@@ -105,7 +107,7 @@ export default function SellerView({
     try {
       await supabase(`orders?id=eq.${orderId}`, "PATCH", { stage: newStage, updated_at: new Date().toISOString() });
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, stage: newStage } : o));
-    } catch (e) { alert("Could not update: " + e.message); }
+    } catch (e) { showToast("Could not update: " + e.message, "error"); }
     finally { setUpdatingId(null); }
   };
 
@@ -114,26 +116,8 @@ export default function SellerView({
     try {
       await supabase(`retailers?id=eq.${id}`, "PATCH", { status: newStatus });
       setAllRetailers(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
-    } catch (e) { alert("Could not update status: " + e.message); }
+    } catch (e) { showToast("Could not update status: " + e.message, "error"); }
     finally { setApprovingId(null); }
-  };
-
-  const updateCreditLimit = async (id, limitValue) => {
-    const val = parseFloat(limitValue);
-    if (isNaN(val) || val < 0) {
-      alert("Please enter a valid credit limit");
-      return;
-    }
-    setUpdatingLimitId(id);
-    try {
-      await supabase(`retailers?id=eq.${id}`, "PATCH", { credit_limit: val });
-      setAllRetailers(prev => prev.map(r => r.id === id ? { ...r, credit_limit: val } : r));
-      alert("Credit limit updated successfully!");
-    } catch (e) {
-      alert("Could not update credit limit: " + e.message);
-    } finally {
-      setUpdatingLimitId(null);
-    }
   };
 
   const loadOrderItems = async (orderId) => {
@@ -158,7 +142,7 @@ export default function SellerView({
       setDcCode(""); setDcDesc(""); setDcValue(""); setDcMin(""); setDcMaxUses(""); setDcExpiry("");
       setShowDiscountForm(false);
       fetchDiscountCodes();
-    } catch (e) { alert("Could not save code: " + e.message); }
+    } catch (e) { showToast("Could not save code: " + e.message, "error"); }
     finally { setSavingCode(false); }
   };
 
@@ -166,7 +150,7 @@ export default function SellerView({
     try {
       await supabase(`discount_codes?id=eq.${id}`, "PATCH", { is_active: !current });
       fetchDiscountCodes();
-    } catch (e) { alert("Could not update code."); }
+    } catch (e) { showToast("Could not update code.", "error"); }
   };
 
   const nextStage = (stage) => {
@@ -207,7 +191,7 @@ export default function SellerView({
       <p style={{ color: COLORS.charcoalSoft, fontSize:13.5, marginTop:4 }}>Deetya Weaves · Guru Kripa Traders</p>
 
       {/* Tabs */}
-      <div style={{ display:"flex", gap:8, borderBottom:`1.5px solid ${COLORS.ivoryDeep}`, paddingBottom:0, marginTop:18, marginBottom:18 }}>
+      <div style={{ display:"flex", gap:8, borderBottom:`1.5px solid ${COLORS.ivoryDeep}`, paddingBottom:0, marginTop:18, marginBottom:18, flexWrap:"wrap" }}>
         {[
           { id: "overview", label: "Orders & Overview", icon: <Truck size={14} /> },
           { id: "sellers", label: "Sellers (Retailers) Details", icon: <User size={14} /> },
@@ -317,8 +301,8 @@ export default function SellerView({
                           {o.discount_amount > 0 && <span style={{ color: COLORS.sage }}>· Disc −₹{o.discount_amount}</span>}
                           <span>· GST ₹{o.gst_amount?.toLocaleString("en-IN") || "—"}</span>
                           <span style={{ fontWeight:600, color: COLORS.charcoal }}>· Total ₹{o.total?.toLocaleString("en-IN")}</span>
-                          <span style={{ display:"flex", alignItems:"center", gap:3, color: o.payment_type==="credit" ? COLORS.turmeric : COLORS.sage }}>
-                            <Wallet size={11}/>{o.payment_type==="credit" ? "On credit" : "Paid upfront"}
+                          <span style={{ display:"flex", alignItems:"center", gap:3, color: o.payment_type==="COD" ? COLORS.turmeric : COLORS.sage }}>
+                            <Wallet size={11}/>{o.payment_type==="COD" ? "Cash on delivery" : "Paid via bank/QR"}
                           </span>
                           · {new Date(o.created_at).toLocaleDateString("en-IN")}
                           {o.coupon_code && <span style={{ color: COLORS.sage }}>· Coupon: {o.coupon_code}</span>}
@@ -502,52 +486,9 @@ export default function SellerView({
 
                     <div style={{ height:"1px", background:`${COLORS.charcoalSoft}12`, margin:"12px 0" }} />
 
-                    {/* Credit Parameters and Orders Summary Card */}
+                    {/* Orders Summary card */}
                     <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(200px, 1fr))", gap:16 }}>
-                      {/* Credit Parameters */}
-                      <div style={{ background: COLORS.ivoryDeep+"44", borderRadius:8, padding:12 }}>
-                        <div style={{ fontSize:11.5, color: COLORS.charcoalSoft, fontWeight:600, textTransform:"uppercase", letterSpacing:0.3, marginBottom:6, display:"flex", alignItems:"center", gap:4 }}>
-                          <Wallet size={12}/> Credit Parameters
-                        </div>
-                        <div style={{ display:"flex", flexDirection:"column", gap:3 }}>
-                          <div style={{ fontSize:12.5, color: COLORS.charcoal }}>
-                            Limit: <strong style={{ fontFamily:"var(--sans)" }}>₹{(r.credit_limit || 0).toLocaleString("en-IN")}</strong>
-                          </div>
-                          <div style={{ fontSize:12.5, color: COLORS.charcoalSoft }}>
-                            Used: ₹{(r.credit_used || 0).toLocaleString("en-IN")}
-                          </div>
-                          <div style={{ fontSize:12.5, color: COLORS.sage, fontWeight: 500 }}>
-                            Available: ₹{Math.max(0, (r.credit_limit || 0) - (r.credit_used || 0)).toLocaleString("en-IN")}
-                          </div>
-                        </div>
-
-                        {/* Credit Adjuster input */}
-                        <div style={{ marginTop:8, display:"flex", gap:6, alignItems:"center" }}>
-                          <input 
-                            type="number" 
-                            placeholder="New Limit"
-                            value={tempLimits[r.id] ?? ""}
-                            onChange={e => setTempLimits(prev => ({ ...prev, [r.id]: e.target.value }))}
-                            style={{ width:90, fontSize:11.5, padding:"4px 8px", border:`1px solid ${COLORS.charcoalSoft}33`, borderRadius:4, background: COLORS.cream, color:COLORS.charcoal, outline:"none" }}
-                          />
-                          <button 
-                            onClick={() => {
-                              updateCreditLimit(r.id, tempLimits[r.id]);
-                              setTempLimits(prev => {
-                                const copy = { ...prev };
-                                delete copy[r.id];
-                                return copy;
-                              });
-                            }}
-                            disabled={updatingLimitId === r.id}
-                            style={{ background: COLORS.indigo, color: COLORS.cream, border:"none", borderRadius:4, padding:"4px 8px", fontSize:11, cursor:"pointer", fontWeight:500, fontFamily:"var(--sans)" }}
-                          >
-                            Update
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Orders Summary */}
+                    {/* Orders Summary */}
                       <div style={{ background: COLORS.ivoryDeep+"44", borderRadius:8, padding:12, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                         <div>
                           <div style={{ fontSize:11.5, color: COLORS.charcoalSoft, fontWeight:600, textTransform:"uppercase", letterSpacing:0.3, marginBottom:6, display:"flex", alignItems:"center", gap:4 }}>
@@ -608,7 +549,7 @@ export default function SellerView({
                                         Order #{o.order_number}
                                       </div>
                                       <div style={{ fontSize:11, color: COLORS.charcoalSoft, marginTop:2 }}>
-                                        {new Date(o.created_at).toLocaleDateString("en-IN")} · Total: ₹{o.total?.toLocaleString("en-IN")} · {o.payment_type === "credit" ? "On credit" : "Upfront"}
+                                        {new Date(o.created_at).toLocaleDateString("en-IN")} · Total: ₹{o.total?.toLocaleString("en-IN")} · {o.payment_type === "COD" ? "Cash on delivery" : "Bank/QR"}
                                       </div>
                                     </div>
                                     
@@ -840,14 +781,14 @@ export default function SellerView({
                         lat: Math.round(position.coords.latitude * 1000000) / 1000000,
                         lng: Math.round(position.coords.longitude * 1000000) / 1000000
                       });
-                      alert("Successfully detected and updated your dispatch location to your current GPS coordinates!");
+                      showToast("Dispatch location updated to your current GPS coordinates.");
                     },
                     (error) => {
-                      alert("Could not detect location automatically: " + error.message + ". Please enter coordinates manually.");
+                      showToast("Could not detect location automatically: " + error.message + ". Please enter coordinates manually.", "error");
                     }
                   );
                 } else {
-                  alert("Geolocation is not supported by your browser.");
+                  showToast("Geolocation is not supported by your browser.", "error");
                 }
               }}
               style={{ background: COLORS.indigo, color: COLORS.cream, border: "none", padding: "10px 18px", borderRadius: 8, fontSize: 13, cursor: "pointer", fontFamily: "var(--sans)", display: "flex", alignItems: "center", gap: 8, fontWeight: 500 }}
@@ -1029,7 +970,7 @@ export default function SellerView({
                   setFooterSuccess(true);
                   setTimeout(() => setFooterSuccess(false), 4000);
                 } catch (e) {
-                  alert("Error saving: " + e.message);
+                  showToast("Error saving: " + e.message, "error");
                 } finally {
                   setSavingFooter(false);
                 }
@@ -1052,6 +993,8 @@ export default function SellerView({
       <div style={{ textAlign:"center", marginTop:40, fontSize:11, color: COLORS.charcoalSoft+"99" }}>
         © Guru Kripa Traders · All rights reserved
       </div>
+
+      {toast && <Toast message={toast.message} type={toast.type} onDone={() => setToast(null)} />}
     </div>
   );
 }

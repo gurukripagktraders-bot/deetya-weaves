@@ -69,6 +69,10 @@ export default function HandloomB2BApp() {
   const showToast = (message, type = "success") => setToast({ message, type });
   const filterConfig = useFilterSettings();
 
+  useEffect(() => {
+    if (filterConfig.saveError) showToast("Could not save filter settings: " + filterConfig.saveError, "error");
+  }, [filterConfig.saveError]);
+
   const systemFooter = useMemo(() => {
     const found = (filterConfig.rawSettings?.price_brackets || []).find(b => b.is_system_footer);
     

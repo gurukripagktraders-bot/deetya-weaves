@@ -48,8 +48,6 @@ export function getLocalCollection(name) {
         shop_name: "Deetya Weaves Admin",
         owner_name: "Admin",
         status: "approved",
-        credit_limit: 1000000,
-        credit_used: 0,
         phone_verified: true,
         email_verified: true,
         email: "admin@deetyaweaves.com",

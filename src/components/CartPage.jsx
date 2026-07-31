@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   ChevronLeft, MapPin, Truck, Wallet, Copy, CreditCard, CheckCircle2,
-  AlertTriangle, Sparkles, Image as ImageIcon, Trash2, ShoppingBag, Plus, Minus, ArrowRight
+  AlertTriangle, Sparkles, Trash2, ShoppingBag, Plus, Minus, ArrowRight
 } from "lucide-react";
+import { ImageWithFallback } from "./ui/atoms.jsx";
 
 import { COLORS } from "../lib/config.js";
 import {
@@ -328,11 +329,7 @@ export default function CartPage({
                 <div key={p.id} style={{ background: COLORS.cream, border: `1.5px solid ${COLORS.charcoalSoft}15`, borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 12 }} className="product-card">
                   <div>
                     <div style={{ height: 110, borderRadius: 8, overflow: "hidden", background: COLORS.ivoryDeep, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
-                      {p.photo ? (
-                        <img src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" />
-                      ) : (
-                        <ImageIcon size={22} color={COLORS.charcoalSoft} />
-                      )}
+                      <ImageWithFallback src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" iconSize={22} />
                     </div>
                     <span style={{ fontSize: 9.5, background: `${COLORS.indigo}15`, color: COLORS.indigo, padding: "2px 6px", borderRadius: 4, fontWeight: 600, textTransform: "uppercase" }}>
                       {p.category}
@@ -392,11 +389,7 @@ export default function CartPage({
                 <div key={p.id} style={{ background: COLORS.cream, border: `1.5px solid ${COLORS.charcoalSoft}15`, borderRadius: 12, padding: 14, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 12 }} className="product-card">
                   <div>
                     <div style={{ height: 110, borderRadius: 8, overflow: "hidden", background: COLORS.ivoryDeep, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
-                      {p.photo ? (
-                        <img src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" />
-                      ) : (
-                        <ImageIcon size={22} color={COLORS.charcoalSoft} />
-                      )}
+                      <ImageWithFallback src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" iconSize={22} />
                     </div>
                     <span style={{ fontSize: 9.5, background: `${COLORS.turmeric}15`, color: COLORS.turmeric, padding: "2px 6px", borderRadius: 4, fontWeight: 600, textTransform: "uppercase" }}>
                       BESTSELLER
@@ -511,11 +504,7 @@ export default function CartPage({
                       <div style={{ position: "absolute", top: 12, left: 12, background: COLORS.turmeric, color: COLORS.cream, fontSize: 10, fontFamily: "var(--sans)", padding: "4px 10px", borderRadius: 20, fontWeight: 600, letterSpacing: 0.5, zIndex: 1, boxShadow: "0 2px 8px rgba(200, 147, 46, 0.2)" }}>⭐ BESTSELLER</div>
                     )}
                     <div className="image-zoom-container" style={{ width: "100%", aspectRatio: "4/3", borderRadius: 12, background: COLORS.ivoryDeep, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", marginBottom: 12 }}>
-                      {product.photo ? (
-                        <img src={product.photo} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" />
-                      ) : (
-                        <ImageIcon size={22} color={COLORS.charcoalSoft + "55"} />
-                      )}
+                      <ImageWithFallback src={product.photo} alt={product.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" iconSize={22} />
                     </div>
                     <div className="product-card-title" style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 15.5, color: COLORS.charcoal, fontWeight: 600, lineHeight: 1.35, minHeight: 42, display: "flex", alignItems: "flex-start" }}>{product.name}</div>
                     <div className="product-card-category" style={{ fontSize: 11.5, color: COLORS.charcoalSoft, marginTop: 4, textTransform: "uppercase", letterSpacing: 0.5, fontWeight: 500 }}>
@@ -608,11 +597,7 @@ export default function CartPage({
                   >
                     <div>
                       <div style={{ height: 95, borderRadius: 8, overflow: "hidden", background: COLORS.ivoryDeep, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-                        {p.photo ? (
-                          <img src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" />
-                        ) : (
-                          <ImageIcon size={20} color={COLORS.charcoalSoft} />
-                        )}
+                        <ImageWithFallback src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" iconSize={20} />
                       </div>
                       <span style={{ fontSize: 9, background: `${COLORS.indigo}12`, color: COLORS.indigo, padding: "1.5px 5px", borderRadius: 4, fontWeight: 600, textTransform: "uppercase", display: "inline-block" }}>
                         {p.category}
@@ -695,11 +680,7 @@ export default function CartPage({
                   >
                     <div>
                       <div style={{ height: 95, borderRadius: 8, overflow: "hidden", background: COLORS.ivoryDeep, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-                        {p.photo ? (
-                          <img src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" />
-                        ) : (
-                          <ImageIcon size={20} color={COLORS.charcoalSoft} />
-                        )}
+                        <ImageWithFallback src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} referrerPolicy="no-referrer" iconSize={20} />
                       </div>
                       <span style={{ fontSize: 9, background: `${COLORS.indigo}12`, color: COLORS.indigo, padding: "1.5px 5px", borderRadius: 4, fontWeight: 600, textTransform: "uppercase", display: "inline-block" }}>
                         {p.category}

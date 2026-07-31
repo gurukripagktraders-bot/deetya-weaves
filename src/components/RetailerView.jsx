@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import {
-  AlertTriangle, Image as ImageIcon, CheckCircle2, Plus, Minus,
+  AlertTriangle, CheckCircle2, Plus, Minus,
   ShoppingBag, ChevronRight, Clock, ChevronLeft, ChevronDown, X,
 } from "lucide-react";
 import { COLORS } from "../lib/config.js";
 import { supabase } from "../lib/db.js";
 import { calculateDistance } from "../lib/helpers.js";
-import { ThreadDivider, WeavingProgress } from "./ui/atoms.jsx";
+import { ThreadDivider, WeavingProgress, ImageWithFallback } from "./ui/atoms.jsx";
 import ProductPanel from "./ProductPanel.jsx";
 import CartPage from "./CartPage.jsx";
 
@@ -43,24 +43,82 @@ export default function RetailerView({
   const debouncedSearch = propsDebouncedSearch !== undefined ? propsDebouncedSearch : search;
   const setSearch = propsSetSearch !== undefined ? propsSetSearch : setLocalSearch;
   const [showSearchInput, setShowSearchInput] = useState(false);
-  const [category, setCategory] = useState("All");
+  const [category, setCategory] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get("category") || "All"; } catch { return "All"; }
+  });
   const [sortBy, setSortBy] = useState("price_asc"); // default | price_asc | price_desc | name_asc | weight_asc
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [subcategoryFilter, setSubcategoryFilter] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get("subcategory") || ""; } catch { return ""; }
+  });
+
+  // Keep category/subcategory in the URL so a page refresh (or sharing the
+  // link) lands back on the same filtered view instead of resetting to "All".
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (category && category !== "All") params.set("category", category); else params.delete("category");
+      if (subcategoryFilter) params.set("subcategory", subcategoryFilter); else params.delete("subcategory");
+      const newSearch = params.toString();
+      const newUrl = `${window.location.pathname}${newSearch ? "?" + newSearch : ""}${window.location.hash}`;
+      window.history.replaceState(window.history.state, "", newUrl);
+    } catch {}
+  }, [category, subcategoryFilter]);
+
+  // Restore the open product panel from the URL once the catalog has
+  // loaded, so refreshing while viewing a product stays on that product
+  // instead of bouncing back to the catalog root.
+  const restoredProductRef = React.useRef(false);
+  useEffect(() => {
+    if (restoredProductRef.current || usingSample || !items || items.length === 0) return;
+    restoredProductRef.current = true;
+    try {
+      const productId = new URLSearchParams(window.location.search).get("product");
+      if (productId) {
+        const found = items.find((p) => p.id === productId);
+        if (found) setSelectedProduct(found);
+      }
+    } catch {}
+  }, [items, usingSample]);
 
   // Mobile back button: push history when panel opens, intercept popstate to close
   useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (selectedProduct) {
+        params.set("product", selectedProduct.id);
+      } else {
+        params.delete("product");
+      }
+      const newSearch = params.toString();
+      const newUrl = `${window.location.pathname}${newSearch ? "?" + newSearch : ""}${window.location.hash}`;
+      if (selectedProduct) {
+        window.history.pushState({ panel: "product" }, "", newUrl);
+      } else {
+        window.history.replaceState(window.history.state, "", newUrl);
+      }
+    } catch {}
+
     if (selectedProduct) {
-      window.history.pushState({ panel: "product" }, "");
       const onPop = () => setSelectedProduct(null);
       window.addEventListener("popstate", onPop);
       return () => window.removeEventListener("popstate", onPop);
     }
   }, [selectedProduct]);
-  const [subcategoryFilter, setSubcategoryFilter] = useState("");
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const [expandedMobileCategories, setExpandedMobileCategories] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Without this, clicking "Next" at the bottom of the page loads new
+  // products but leaves the scroll position where it was — so the user
+  // stays scrolled near the bottom, which on the new page of products
+  // often lines up with the site footer instead of the product grid.
+  const isFirstPageRender = React.useRef(true);
+  useEffect(() => {
+    if (isFirstPageRender.current) { isFirstPageRender.current = false; return; }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
   const [priceBracket, setPriceBracket] = useState(null);
   const [weightFilter, setWeightFilter] = useState("");
   const [sizeFilter, setSizeFilter] = useState("");
@@ -242,13 +300,9 @@ export default function RetailerView({
   });
 
   const placeOrder = async () => {
-        // Credit limit check
-    if (paymentType === "credit" && account?.credit_limit > 0) {
-      const remaining = account.credit_limit - (account.credit_used || 0);
-      if (cartTotal > remaining) {
-        setOrderError(`Credit limit exceeded. Available: ₹${remaining.toLocaleString("en-IN")}`);
-        return;
-      }
+    if (usingSample) {
+      setError("The product catalog couldn't be loaded right now, so what you're seeing isn't live inventory or pricing. Please try again in a few minutes — orders can't be placed while this is showing.");
+      return;
     }
     setPlacing(true); setError("");
     try {
@@ -326,7 +380,7 @@ export default function RetailerView({
           <h2 style={{ fontFamily:"var(--serif)", fontSize:21, color: COLORS.indigo, margin:0 }}>Order placed — #{order.order_number}</h2>
         </div>
         <p style={{ color: COLORS.charcoalSoft, fontSize:13.5, marginTop:4 }}>
-          Awaiting seller confirmation · {paymentType === "credit" ? "On credit" : "Paid upfront"} · Prices excluding GST (Tax & Shipping Applied)
+          Awaiting seller confirmation · {paymentType === "COD" ? "Cash on delivery" : "Paid via bank/QR"} · Prices excluding GST (Tax & Shipping Applied)
         </p>
         <ThreadDivider />
 
@@ -454,6 +508,19 @@ export default function RetailerView({
 
   return (
     <div>
+      {usingSample && (
+        <div style={{
+          background: `${COLORS.madder}12`, border: `1.5px solid ${COLORS.madder}44`, borderRadius: 10,
+          padding: "12px 16px", marginBottom: 16, display: "flex", alignItems: "flex-start", gap: 10,
+        }}>
+          <AlertTriangle size={16} color={COLORS.madder} style={{ flexShrink: 0, marginTop: 1 }} />
+          <div style={{ fontSize: 12.5, color: COLORS.charcoal, lineHeight: 1.5 }}>
+            <strong style={{ color: COLORS.madder }}>We're having trouble loading the live catalog.</strong>{" "}
+            The products below are placeholder examples, not real inventory or pricing — please check back
+            shortly. Orders can't be placed while this message is showing.
+          </div>
+        </div>
+      )}
       {/* Desktop Horizontal Category Navigation & Filters at same horizontal level */}
       <div className="hide-mobile" style={{ marginTop: 12, marginBottom: 18 }}>
         <div style={{
@@ -1102,9 +1169,7 @@ export default function RetailerView({
                     className="product-card"
                     style={{ minWidth:180, background: COLORS.ivory, border:`1.5px solid ${COLORS.sage}22`, borderRadius:12, padding:14, cursor:"pointer", flexShrink:0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                     <div className="image-zoom-container" style={{ width:"100%", aspectRatio:"4/3", borderRadius:10, background: COLORS.ivoryDeep, overflow:"hidden", marginBottom:10 }}>
-                      {product.photo
-                        ? <img src={product.photo} alt={product.name} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                        : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><ImageIcon size={18} color={COLORS.charcoalSoft+"55"}/></div>}
+                      <ImageWithFallback src={product.photo} alt={product.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                     </div>
                     <div style={{ fontSize:13, fontFamily:"var(--serif)", color: COLORS.charcoal, marginBottom:4, lineHeight:1.3, fontWeight: 600 }}>{product.name}</div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", paddingTop: 8 }}>
@@ -1147,9 +1212,7 @@ export default function RetailerView({
                     className="product-card"
                     style={{ minWidth:220, maxWidth:220, background: COLORS.cream, border:`1.5px solid ${COLORS.turmeric}44`, borderRadius:16, padding:14, cursor:"pointer", flexShrink:0, display: "flex", flexDirection: "column" }}>
                     <div className="image-zoom-container" style={{ width:"100%", aspectRatio:"4/3", borderRadius:10, background: COLORS.ivoryDeep, overflow:"hidden", marginBottom:10 }}>
-                      {product.photo
-                        ? <img src={product.photo} alt={product.name} style={{ width:"100%", height:"100%", objectFit:"cover" }}/>
-                        : <div style={{ width:"100%", height:"100%", display:"flex", alignItems:"center", justifyContent:"center" }}><ImageIcon size={18} color={COLORS.charcoalSoft+"55"}/></div>}
+                      <ImageWithFallback src={product.photo} alt={product.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
                     </div>
                     <div style={{ fontSize:13, fontFamily:"var(--serif)", color: COLORS.charcoal, marginBottom:4, lineHeight:1.3, fontWeight: 600 }}>{product.name}</div>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", paddingTop: 8 }}>
@@ -1198,7 +1261,7 @@ export default function RetailerView({
                 <div onClick={() => { setSelectedProduct(product); setSelectedVariant(prev => ({ ...prev, [product.id]: variant.id })); }}
                   className="image-zoom-container"
                   style={{ width:"100%", aspectRatio:"4/3", borderRadius:12, background: COLORS.ivoryDeep, display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden", marginBottom:12, cursor:"pointer" }}>
-                  {product.photo ? <img src={product.photo} alt={product.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e => { e.target.style.display="none"; }}/> : <ImageIcon size={22} color={COLORS.charcoalSoft+"55"}/>}
+                  <ImageWithFallback src={product.photo} alt={product.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} iconSize={22} />
                 </div>
                 <div onClick={() => { setSelectedProduct(product); setSelectedVariant(prev => ({ ...prev, [product.id]: variant.id })); }}
                   className="product-card-title"
