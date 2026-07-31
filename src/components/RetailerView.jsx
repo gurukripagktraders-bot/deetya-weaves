@@ -130,6 +130,22 @@ export default function RetailerView({
       }
     } catch {}
   }, [category, subcategoryFilter, selectedProduct]);
+
+  // On some mobile browsers, the very first history entry when a page loads
+  // isn't itself a landable "back" target — once the user backs past their
+  // last real click, there's nothing left except exiting the site. Pushing
+  // one duplicate "anchor" entry right on load gives the back button a real
+  // step to land on, so backing out of a category/product lands on the
+  // catalog home instead of exiting.
+  const anchorPushedRef = React.useRef(false);
+  useEffect(() => {
+    if (anchorPushedRef.current) return;
+    anchorPushedRef.current = true;
+    try {
+      const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+      window.history.pushState({ anchor: true }, "", currentUrl);
+    } catch {}
+  }, []);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const [expandedMobileCategories, setExpandedMobileCategories] = useState({});
