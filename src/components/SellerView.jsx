@@ -68,6 +68,7 @@ export default function SellerView({
     showToast(failCount === 0 ? `Seeded stock for ${toSeed.length} variants.` : `Seeded ${toSeed.length - failCount} of ${toSeed.length} — ${failCount} failed.`, failCount === 0 ? "success" : "error");
   };
 
+  const [restockInputs, setRestockInputs] = useState({}); // variantKey -> string
   const [restockingKey, setRestockingKey] = useState(null);
   const handleRestock = async (variantKey, productName) => {
     const raw = restockInputs[variantKey];
