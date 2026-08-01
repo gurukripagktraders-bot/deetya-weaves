@@ -169,7 +169,7 @@ export default function RetailerView({
   const [showFilters, setShowFilters] = useState(false);
   const [placed, setPlaced] = useState(null);
   const [placing, setPlacing] = useState(false);
-  const [paymentType, setPaymentType] = useState("upfront");
+  const [paymentType, setPaymentType] = useState("COD");
   
   const [localViewingCart, setLocalViewingCart] = useState(false);
   const viewingCart = propsViewingCart !== undefined ? propsViewingCart : localViewingCart;
