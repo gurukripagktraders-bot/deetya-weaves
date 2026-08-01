@@ -40,6 +40,8 @@ export function parseSheet(csvText) {
   const rows = result.data;
   const grouped = [];
   let currentParent = null;
+  let currentSku = null;
+  let variantIndexInProduct = 0;
   let idx = 0;
 
   rows.forEach((row) => {
@@ -64,12 +66,24 @@ export function parseSheet(csvText) {
     const isBestseller = col(row, "bestseller", "best seller", "featured").toLowerCase() === "yes";
     const isNewlyAdded = ["yes", "true", "1"].includes(col(row, "newly added", "newlyadded", "new_added", "new", "new arrival").toLowerCase());
     const description = col(row, "description", "desc", "product description");
-    const variantObj = { id: "v" + i, label: name, size, weight, priceW, priceR, moq, stock, gstPct };
+
+    // Stable IDs: use a SKU column if the sheet has one filled in for this
+    // product, so IDs survive reordering/inserting rows later — falls back
+    // to the old row-position-based ID for rows without a SKU yet.
+    const rowSku = col(row, "sku", "product id", "item id", "id");
 
     if (variantType.toLowerCase() === "child" && currentParent) {
+      variantIndexInProduct++;
+      const variantId = currentSku ? `${currentSku}::${variantIndexInProduct}` : "v" + i;
+      const variantObj = { id: variantId, label: name, size, weight, priceW, priceR, moq, stock, gstPct };
       currentParent.variants.push(variantObj);
     } else {
-      const product = { id: "p" + i, name, category, subcategory, photo, photos, variants: [variantObj], gstPct, isBestseller, isNewlyAdded, description };
+      currentSku = rowSku || null;
+      variantIndexInProduct = 0;
+      const productId = currentSku || "p" + i;
+      const variantId = currentSku ? `${currentSku}::0` : "v" + i;
+      const variantObj = { id: variantId, label: name, size, weight, priceW, priceR, moq, stock, gstPct };
+      const product = { id: productId, name, category, subcategory, photo, photos, variants: [variantObj], gstPct, isBestseller, isNewlyAdded, description };
       grouped.push(product);
       currentParent = product;
     }

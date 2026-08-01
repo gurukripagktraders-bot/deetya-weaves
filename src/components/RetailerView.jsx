@@ -5,7 +5,7 @@ import {
   ShoppingBag, ChevronRight, Clock, ChevronLeft, ChevronDown, X,
 } from "lucide-react";
 import { COLORS } from "../lib/config.js";
-import { supabase } from "../lib/db.js";
+import { supabase, callRpc } from "../lib/db.js";
 import { calculateDistance } from "../lib/helpers.js";
 import { ThreadDivider, WeavingProgress, ImageWithFallback } from "./ui/atoms.jsx";
 import ProductPanel from "./ProductPanel.jsx";
@@ -337,7 +337,7 @@ export default function RetailerView({
     const [productId, variantId] = key.split("__");
     const product = items.find(p => p.id === productId);
     const variant = product?.variants.find(v => v.id === variantId);
-    return { item_name: variant?.label || product?.name, category: product?.category, price_w: variant?.priceW, quantity: qty, subtotal: (variant?.priceW || 0) * qty };
+    return { variant_key: variant?.id, item_name: variant?.label || product?.name, category: product?.category, price_w: variant?.priceW, quantity: qty, subtotal: (variant?.priceW || 0) * qty };
   });
 
   const placeOrder = async () => {
@@ -349,16 +349,31 @@ export default function RetailerView({
     try {
       const lineItems = buildLineItems();
       const deliveryNotes = `Shipping distance: ${activeDistance.toFixed(1)} km from ${dispatchLocation.address}. Shipping charge applied: ₹${deliveryFee}.`;
-      const orderRows = await supabase("orders", "POST", {
-        retailer_id: account?.id, retailer_phone: account?.phone, retailer_name: account?.shop_name,
-        subtotal, discount_amount: discountAmount, gst_rate: Math.round(effectiveGstRatio * 100), gst_amount: gstAmount,
-        total: cartTotal, payment_type: paymentType, stage: "Pending",
-        coupon_code: couponResult?.valid ? couponResult.code : null,
-        notes: deliveryNotes,
-      });
-      const order = orderRows[0];
-      const dbItems = lineItems.map(li => ({ ...li, order_id: order.id }));
-      await supabase("order_items", "POST", dbItems);
+      let result;
+      try {
+        result = await callRpc("place_order", {
+          p_retailer_id: account?.id,
+          p_retailer_phone: account?.phone,
+          p_retailer_name: account?.shop_name,
+          p_payment_type: paymentType,
+          p_coupon_code: couponResult?.valid ? couponResult.code : null,
+          p_discount_amount: discountAmount,
+          p_subtotal: subtotal,
+          p_gst_rate: Math.round(effectiveGstRatio * 100),
+          p_gst_amount: gstAmount,
+          p_total: cartTotal,
+          p_notes: deliveryNotes,
+          p_items: lineItems,
+        });
+      } catch (rpcErr) {
+        const msg = rpcErr.message || "";
+        if (msg.includes("INSUFFICIENT_STOCK")) {
+          const itemName = msg.split("INSUFFICIENT_STOCK:")[1]?.trim() || "an item in your cart";
+          throw new Error(`${itemName} just sold out — please remove it from your cart and try again.`);
+        }
+        throw rpcErr;
+      }
+      const order = result?.id ? result : result?.[0];
       if (couponResult?.valid) {
         await supabase(`discount_codes?id=eq.${couponResult.id}`, "PATCH", { times_used: (await supabase(`discount_codes?id=eq.${couponResult.id}&select=times_used`))[0].times_used + 1 });
       }

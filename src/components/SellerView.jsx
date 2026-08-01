@@ -4,7 +4,7 @@ import {
   ShieldCheck, User, Bell, ChevronDown, MapPin, FileText,
 } from "lucide-react";
 import { COLORS, STAGES } from "../lib/config.js";
-import { supabase } from "../lib/db.js";
+import { supabase, callRpc } from "../lib/db.js";
 import { StatCard, ThreadDivider, WeavingProgress, Toast } from "./ui/atoms.jsx";
 
 // SELLER DASHBOARD
@@ -34,6 +34,59 @@ export default function SellerView({
   // Toast notifications (replaces native alert() popups)
   const [toast, setToast] = useState(null); // { message, type }
   const showToast = (message, type = "success") => setToast({ message, type });
+
+  // One-time (or repeatable) bulk seed of product_stock from the sheet's
+  // current stock numbers — safe to re-run, it overwrites with the sheet's
+  // value rather than adding to whatever's already there.
+  const [seedingStock, setSeedingStock] = useState(false);
+  const [seedProgress, setSeedProgress] = useState(null); // { done, total }
+  const handleSeedStockFromSheet = async () => {
+    const toSeed = [];
+    items.forEach((product) => {
+      product.variants.forEach((v) => {
+        if (v.stock !== null && v.stock !== undefined) toSeed.push({ variantKey: v.id, stock: v.stock, name: product.name });
+      });
+    });
+    if (toSeed.length === 0) {
+      showToast("No stock numbers found in the sheet to seed from.", "error");
+      return;
+    }
+    setSeedingStock(true);
+    setSeedProgress({ done: 0, total: toSeed.length });
+    let failCount = 0;
+    for (let i = 0; i < toSeed.length; i++) {
+      const item = toSeed[i];
+      try {
+        await callRpc("set_stock", { p_variant_key: item.variantKey, p_stock: item.stock, p_product_name: item.name });
+      } catch {
+        failCount++;
+      }
+      setSeedProgress({ done: i + 1, total: toSeed.length });
+    }
+    setSeedingStock(false);
+    setSeedProgress(null);
+    showToast(failCount === 0 ? `Seeded stock for ${toSeed.length} variants.` : `Seeded ${toSeed.length - failCount} of ${toSeed.length} — ${failCount} failed.`, failCount === 0 ? "success" : "error");
+  };
+
+  const [restockingKey, setRestockingKey] = useState(null);
+  const handleRestock = async (variantKey, productName) => {
+    const raw = restockInputs[variantKey];
+    const delta = parseInt(raw, 10);
+    if (!Number.isFinite(delta) || delta === 0) {
+      showToast("Enter a non-zero amount to add or remove.", "error");
+      return;
+    }
+    setRestockingKey(variantKey);
+    try {
+      const newStock = await callRpc("adjust_stock", { p_variant_key: variantKey, p_delta: delta, p_product_name: productName });
+      showToast(`Stock updated — now ${newStock}.`);
+      setRestockInputs((prev) => { const next = { ...prev }; delete next[variantKey]; return next; });
+    } catch (e) {
+      showToast("Could not update stock: " + e.message, "error");
+    } finally {
+      setRestockingKey(null);
+    }
+  };
   
   // Footer and Terms state
   const [localAboutUs, setLocalAboutUs] = useState("");
@@ -688,15 +741,24 @@ export default function SellerView({
           )}
 
           <ThreadDivider />
-          <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-            <Package size={16} color={COLORS.indigo}/>
-            <h3 style={{ fontFamily:"var(--serif)", fontSize:16.5, color: COLORS.charcoal, margin:0 }}>Inventory (from sheet)</h3>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12, flexWrap:"wrap", gap:8 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+              <Package size={16} color={COLORS.indigo}/>
+              <h3 style={{ fontFamily:"var(--serif)", fontSize:16.5, color: COLORS.charcoal, margin:0 }}>Inventory (products from sheet, stock live in database)</h3>
+            </div>
+            <button
+              onClick={handleSeedStockFromSheet}
+              disabled={seedingStock}
+              style={{ background: COLORS.charcoalSoft+"22", color: COLORS.charcoal, border:"none", padding:"7px 14px", borderRadius:8, fontSize:12, cursor: seedingStock ? "default" : "pointer", fontFamily:"var(--sans)" }}
+            >
+              {seedingStock ? `Seeding ${seedProgress?.done ?? 0}/${seedProgress?.total ?? 0}...` : "Seed stock from sheet"}
+            </button>
           </div>
           <div style={{ background: COLORS.cream, border:`1px solid ${COLORS.charcoalSoft}22`, borderRadius:12, overflow:"auto", marginBottom:24 }}>
             <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13, fontFamily:"var(--sans)" }}>
               <thead>
                 <tr style={{ background: COLORS.ivoryDeep, textAlign:"left" }}>
-                  {["Item","Category","Variant / Size","Price (W)","MOQ","Current Stock"].map(h => (
+                  {["Item","Category","Variant / Size","Price (W)","MOQ","Current Stock","Adjust Stock"].map(h => (
                     <th key={h} style={{ padding:"10px 14px", fontWeight:500, color: COLORS.charcoalSoft }}>{h}</th>
                   ))}
                 </tr>
@@ -715,6 +777,24 @@ export default function SellerView({
                           : v.stock === 0 ? <span style={{ color: COLORS.madder, fontSize:12, fontWeight: 600 }}>Out of stock</span>
                           : v.stock < 15 ? <span style={{ color: COLORS.turmeric, fontSize:12, fontWeight: 600 }}>Low ({v.stock})</span>
                           : <span style={{ color: COLORS.sage, fontSize:12, fontWeight: 600 }}>{v.stock}</span>}
+                      </td>
+                      <td style={{ padding:"10px 14px" }}>
+                        <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                          <input
+                            type="number"
+                            placeholder="+/- qty"
+                            value={restockInputs[v.id] ?? ""}
+                            onChange={e => setRestockInputs(prev => ({ ...prev, [v.id]: e.target.value }))}
+                            style={{ width:80, fontSize:11.5, padding:"4px 8px", border:`1px solid ${COLORS.charcoalSoft}33`, borderRadius:4, background: COLORS.cream, color:COLORS.charcoal, outline:"none" }}
+                          />
+                          <button
+                            onClick={() => handleRestock(v.id, product.name)}
+                            disabled={restockingKey === v.id}
+                            style={{ background: COLORS.indigo, color: COLORS.cream, border:"none", borderRadius:4, padding:"4px 8px", fontSize:11, cursor:"pointer", fontWeight:500, fontFamily:"var(--sans)" }}
+                          >
+                            Apply
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

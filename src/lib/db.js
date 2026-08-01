@@ -202,3 +202,28 @@ export async function supabase(table, method = "GET", body = null, extra = "") {
   }
 }
 
+// Calls a Postgres function (RPC) directly, WITHOUT falling back to local
+// mock data on error — unlike supabase() above. Use this for anything
+// where a rejection (e.g. "out of stock") must actually reach the caller
+// instead of being silently swallowed and masked by a local fallback.
+export async function callRpc(fnName, args = {}) {
+  const headers = {
+    "apikey": SUPABASE_ANON_KEY,
+    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+    "Content-Type": "application/json",
+  };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(args),
+  });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => "");
+    let errMsg = `Request failed (${res.status})`;
+    try { errMsg = JSON.parse(errText).message || errMsg; } catch {}
+    throw new Error(errMsg);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
