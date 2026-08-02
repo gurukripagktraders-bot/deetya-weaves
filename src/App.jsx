@@ -6,6 +6,7 @@ import {
 import { COLORS } from "./lib/config.js";
 import { supabase } from "./lib/db.js";
 import { supabaseClient } from "./lib/supabaseClient.js";
+import { ensurePushSubscription } from "./lib/push.js";
 import { useFilterSettings } from "./hooks/useFilterSettings.js";
 import { useSheetData } from "./hooks/useSheetData.js";
 import { SyncBar, Toast } from "./components/ui/atoms.jsx";
@@ -64,6 +65,10 @@ export default function HandloomB2BApp() {
   const [tab, setTab] = useState(savedAccount?.is_admin ? "seller" : "retailer");
   const [activePage, setActivePage] = useState(initialRoute.page); // "catalog" or "profile"
   const isAdmin = account?.is_admin === true;
+
+  useEffect(() => {
+    if (isAdmin) ensurePushSubscription();
+  }, [isAdmin]);
   const [showQuickLogin, setShowQuickLogin] = useState(false);
   const [toast, setToast] = useState(null); // { message, type }
   const showToast = (message, type = "success") => setToast({ message, type });
@@ -137,8 +142,14 @@ export default function HandloomB2BApp() {
   const contactInfo = systemFooter?.contactInfo || {};
 
   // Lifted cart and viewingCart state
-  const [cart, setCart] = useState({});
+  const [cart, setCart] = useState(() => {
+    try { const s = localStorage.getItem("deetya_cart"); return s ? JSON.parse(s) : {}; } catch { return {}; }
+  });
   const [viewingCart, setViewingCart] = useState(initialRoute.cart);
+
+  useEffect(() => {
+    try { localStorage.setItem("deetya_cart", JSON.stringify(cart)); } catch {}
+  }, [cart]);
 
   // Sync URL hash with React state
   useEffect(() => {
@@ -603,7 +614,7 @@ export default function HandloomB2BApp() {
 
             {/* Log Out Button */}
             {account && (
-              <button onClick={() => { setAccount(null); setActivePage("catalog"); setViewingCart(false); try { localStorage.removeItem("deetya_account"); } catch {} if (isAdmin) { supabaseClient.auth.signOut(); handleBackToCatalog(); } }}
+              <button onClick={() => { setAccount(null); setActivePage("catalog"); setViewingCart(false); setCart({}); try { localStorage.removeItem("deetya_account"); localStorage.removeItem("deetya_cart"); } catch {} if (isAdmin) { supabaseClient.auth.signOut(); handleBackToCatalog(); } }}
                 className="hide-mobile"
                 style={{ display:"flex", alignItems:"center", gap:5, background:"transparent", border:`1px solid ${COLORS.charcoalSoft}33`, borderRadius:8, padding:"7px 10px", fontSize:12, cursor:"pointer", color: COLORS.charcoalSoft, fontFamily:"var(--sans)" }}>
                 <LogOut size={13}/> Log out

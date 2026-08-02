@@ -18,6 +18,11 @@ export const ADMIN_EMAILS = [
   "gurukripa.gktraders@gmail.com",
 ];
 
+// Public VAPID key for Web Push — safe to expose client-side, this is the
+// "public" half of the key pair by design (the matching private key lives
+// only in Vercel's environment variables, used server-side to sign pushes).
+export const VAPID_PUBLIC_KEY = "BBqOa0XNKwB7Q6rnOZmej50QHPNfqmkCe57bUXAEejAxJIE3niCUhUY3GSWTb4ZOT4HmynTa7cghfLYQJe82mm0";
+
 export const COLORS = {
   // Backgrounds — warm desert sand
   ivory:        "#FDF6EC",   // main page background

@@ -1,0 +1,14 @@
+{
+  "name": "Deetya Weaves Admin",
+  "short_name": "Deetya Admin",
+  "description": "Seller dashboard for Deetya Weaves — orders, inventory, and stock.",
+  "start_url": "/?admin",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FDF6EC",
+  "theme_color": "#3D1F5C",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
