@@ -329,8 +329,8 @@ export default function ProductPanel({ product, variant, onClose, onAddToCart, c
                   style={{ border:"none", background:"transparent", width:40, height:44, cursor: (selVariant?.stock !== null && selVariant?.stock !== undefined && qty >= selVariant.stock) ? "default" : "pointer", color: (selVariant?.stock !== null && selVariant?.stock !== undefined && qty >= selVariant.stock) ? COLORS.charcoalSoft+"55" : COLORS.indigo, fontSize:18, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
               </div>
               <div style={{ flex:1, background: COLORS.indigo, color: COLORS.cream, borderRadius:8, height:44, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontFamily:"var(--sans)", cursor:"pointer" }}
-                onClick={() => { onAddToCart(product, selVariant, qty === 0 ? 1 : 0); }}>
-                {qty > 0 ? `${qty} in cart — update` : `Add to cart (min ${selVariant?.moq})`}
+                onClick={() => { onAddToCart(product, selVariant, 1); }}>
+                {qty > 0 ? `${qty} in cart — add more` : `Add to cart (min ${selVariant?.moq})`}
               </div>
             </div>
           ) : (
