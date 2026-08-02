@@ -529,7 +529,7 @@ export default function CartPage({
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: COLORS.ivoryDeep, borderRadius: 8, padding: "6px 8px", flex: 1 }}>
                         <button onClick={() => setQty(product, variant, -1)} style={{ border: "none", background: "transparent", cursor: "pointer", color: COLORS.indigo, display: "flex" }}><Minus size={15} /></button>
                         <span style={{ fontSize: 13.5, color: COLORS.charcoal, minWidth: 30, textAlign: "center", fontWeight: 600 }}>{qty}</span>
-                        <button onClick={() => setQty(product, variant, 1)} style={{ border: "none", background: "transparent", cursor: "pointer", color: COLORS.indigo, display: "flex" }}><Plus size={15} /></button>
+                        <button onClick={() => setQty(product, variant, 1)} disabled={variant.stock !== null && variant.stock !== undefined && qty >= variant.stock} title={variant.stock !== null && variant.stock !== undefined && qty >= variant.stock ? "No more stock available" : undefined} style={{ border: "none", background: "transparent", cursor: (variant.stock !== null && variant.stock !== undefined && qty >= variant.stock) ? "default" : "pointer", color: (variant.stock !== null && variant.stock !== undefined && qty >= variant.stock) ? COLORS.charcoalSoft+"55" : COLORS.indigo, display: "flex" }}><Plus size={15} /></button>
                       </div>
                       <button
                         onClick={() => setQty(product, variant, -qty / variant.moq)}

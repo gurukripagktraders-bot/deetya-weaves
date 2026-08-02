@@ -254,7 +254,10 @@ export default function RetailerView({
     setCart(prev => {
       const current = prev[key] || 0;
       if (addOnce && current > 0) return prev; // already in cart
-      const next = Math.max(0, current === 0 && delta > 0 ? variant.moq : current + delta * variant.moq);
+      const stockTracked = variant.stock !== null && variant.stock !== undefined;
+      if (stockTracked && variant.stock < variant.moq) return prev; // not enough stock to meet MOQ at all
+      let next = Math.max(0, current === 0 && delta > 0 ? variant.moq : current + delta * variant.moq);
+      if (stockTracked) next = Math.min(next, variant.stock);
       return { ...prev, [key]: next };
     });
   };
@@ -1306,6 +1309,7 @@ export default function RetailerView({
           const variant = product.variants.find(v => v.id === selVId) || product.variants[0];
           const cartKey = product.id + "__" + variant.id;
           const qty = cart[cartKey] || 0;
+          const atMaxStock = variant.stock !== null && variant.stock !== undefined && qty >= variant.stock;
           const outOfStock = variant.stock === 0;
           const hasVariants = product.variants.length > 1;
           return (
@@ -1366,7 +1370,7 @@ export default function RetailerView({
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, background: COLORS.ivoryDeep, borderRadius:8, padding:"6px 8px" }}>
                         <button onClick={() => setQty(product, variant, -1)} disabled={qty===0} style={{ border:"none", background:"transparent", cursor: qty===0 ? "default":"pointer", color: qty===0 ? COLORS.charcoalSoft+"55" : COLORS.indigo, display:"flex" }}><Minus size={15}/></button>
                         <span key={`qty-${cartKey}-${qty}`} className={qty > 0 ? "qty-pop" : ""} style={{ fontSize:13.5, color: COLORS.charcoal, minWidth:30, textAlign:"center", fontWeight: 600 }}>{qty}</span>
-                        <button onClick={() => setQty(product, variant, 1)} style={{ border:"none", background:"transparent", cursor:"pointer", color: COLORS.indigo, display:"flex" }}><Plus size={15}/></button>
+                        <button onClick={() => setQty(product, variant, 1)} disabled={atMaxStock} title={atMaxStock ? "No more stock available" : undefined} style={{ border:"none", background:"transparent", cursor: atMaxStock ? "default" : "pointer", color: atMaxStock ? COLORS.charcoalSoft+"55" : COLORS.indigo, display:"flex" }}><Plus size={15}/></button>
                       </div>
                     )}
                   </>

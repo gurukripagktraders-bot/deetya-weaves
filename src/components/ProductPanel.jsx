@@ -324,8 +324,9 @@ export default function ProductPanel({ product, variant, onClose, onAddToCart, c
                 <button onClick={() => onAddToCart(product, selVariant, -1)} disabled={qty===0}
                   style={{ border:"none", background:"transparent", width:40, height:44, cursor: qty===0?"default":"pointer", color: qty===0?COLORS.charcoalSoft+"55":COLORS.indigo, fontSize:18, display:"flex", alignItems:"center", justifyContent:"center" }}>−</button>
                 <span style={{ minWidth:40, textAlign:"center", fontSize:14, color: COLORS.charcoal, fontFamily:"var(--sans)" }}>{qty}</span>
-                <button onClick={() => onAddToCart(product, selVariant, 1)}
-                  style={{ border:"none", background:"transparent", width:40, height:44, cursor:"pointer", color: COLORS.indigo, fontSize:18, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                <button onClick={() => onAddToCart(product, selVariant, 1)} disabled={selVariant?.stock !== null && selVariant?.stock !== undefined && qty >= selVariant.stock}
+                  title={selVariant?.stock !== null && selVariant?.stock !== undefined && qty >= selVariant.stock ? "No more stock available" : undefined}
+                  style={{ border:"none", background:"transparent", width:40, height:44, cursor: (selVariant?.stock !== null && selVariant?.stock !== undefined && qty >= selVariant.stock) ? "default" : "pointer", color: (selVariant?.stock !== null && selVariant?.stock !== undefined && qty >= selVariant.stock) ? COLORS.charcoalSoft+"55" : COLORS.indigo, fontSize:18, display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
               </div>
               <div style={{ flex:1, background: COLORS.indigo, color: COLORS.cream, borderRadius:8, height:44, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, fontFamily:"var(--sans)", cursor:"pointer" }}
                 onClick={() => { onAddToCart(product, selVariant, qty === 0 ? 1 : 0); }}>
