@@ -87,10 +87,6 @@ async function sendPush({ order_number, retailer_name, total }) {
   if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return; // not configured, skip quietly
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return;
 
-  // Temporary diagnostic — safe to log, this is a PUBLIC key. Remove once
-  // push notifications are confirmed working.
-  console.log("VAPID_PUBLIC_KEY currently set to:", JSON.stringify(process.env.VAPID_PUBLIC_KEY), "length:", process.env.VAPID_PUBLIC_KEY.length);
-
   webpush.setVapidDetails(
     "mailto:" + (process.env.NOTIFY_TO_EMAIL || "admin@example.com"),
     process.env.VAPID_PUBLIC_KEY,
