@@ -1145,6 +1145,40 @@ export default function CartPage({
                   </p>
                 </div>
               </div>
+
+              {/* Razorpay Option */}
+              <div
+                onClick={() => setPaymentType("RAZORPAY")}
+                style={{
+                  background: paymentType === "RAZORPAY" ? `${COLORS.indigo}04` : COLORS.cream,
+                  border: `2px solid ${paymentType === "RAZORPAY" ? COLORS.indigo : `${COLORS.charcoalSoft}22`}`,
+                  borderRadius: 8,
+                  padding: "14px",
+                  cursor: "pointer",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "flex-start"
+                }}
+              >
+                <div style={{ marginTop: 2 }}>
+                  <input
+                    type="radio"
+                    name="paymentType"
+                    checked={paymentType === "RAZORPAY"}
+                    onChange={() => setPaymentType("RAZORPAY")}
+                    style={{ accentColor: COLORS.indigo, cursor: "pointer" }}
+                  />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.indigo, display: "flex", alignItems: "center", gap: 4 }}>
+                    <CreditCard size={14} /> Pay Online (Cards / UPI / Netbanking)
+                  </div>
+                  <p style={{ fontSize: 11.5, color: COLORS.charcoalSoft, marginTop: 3, lineHeight: 1.35 }}>
+                    Secure instant payment via Razorpay — your order is confirmed the moment payment goes through.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Bank details expansion */}

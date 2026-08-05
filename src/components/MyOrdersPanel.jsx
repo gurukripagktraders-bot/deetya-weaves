@@ -509,8 +509,8 @@ export default function MyOrdersPanel({
                         </div>
                         <div>
                           <span style={{ fontSize: 11, color: COLORS.charcoalSoft, textTransform: "uppercase", letterSpacing: 0.5, display: "block" }}>Delivery Shop Details</span>
-                          <span style={{ fontSize: 12, color: COLORS.charcoalSoft, marginTop: 2, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={account?.detailed_address}>
-                            {account?.shop_name} · {account?.detailed_address}
+                          <span style={{ fontSize: 12, color: COLORS.charcoalSoft, marginTop: 2, display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={account?.address}>
+                            {account?.shop_name} · {account?.address}
                           </span>
                         </div>
                       </div>

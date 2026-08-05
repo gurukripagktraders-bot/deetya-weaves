@@ -7,6 +7,7 @@ import {
 import { COLORS } from "../lib/config.js";
 import { supabase, callRpc } from "../lib/db.js";
 import { calculateDistance } from "../lib/helpers.js";
+import { loadRazorpayScript } from "../lib/razorpay.js";
 import { ThreadDivider, WeavingProgress, ImageWithFallback } from "./ui/atoms.jsx";
 import ProductPanel from "./ProductPanel.jsx";
 import CartPage from "./CartPage.jsx";
@@ -343,11 +344,19 @@ export default function RetailerView({
     return { variant_key: variant?.id, item_name: variant?.label || product?.name, category: product?.category, price_w: variant?.priceW, quantity: qty, subtotal: (variant?.priceW || 0) * qty };
   });
 
+  const finishOrderSuccess = (order, lineItems, deliveryNotes) => {
+    setPlaced({ order, lineItems, subtotal, discountAmount, gstAmount, total: cartTotal, coupon: couponResult?.valid ? couponResult.code : null, deliveryFee, notes: deliveryNotes });
+    setCart({}); setCouponCode(""); setCouponResult(null);
+    if (onOrderPlaced) onOrderPlaced();
+  };
+
   const placeOrder = async () => {
     if (usingSample) {
       setError("The product catalog couldn't be loaded right now, so what you're seeing isn't live inventory or pricing. Please try again in a few minutes — orders can't be placed while this is showing.");
       return;
     }
+    if (paymentType === "RAZORPAY") return placeOrderViaRazorpay();
+
     setPlacing(true); setError("");
     try {
       const lineItems = buildLineItems();
@@ -380,12 +389,88 @@ export default function RetailerView({
       if (couponResult?.valid) {
         await supabase(`discount_codes?id=eq.${couponResult.id}`, "PATCH", { times_used: (await supabase(`discount_codes?id=eq.${couponResult.id}&select=times_used`))[0].times_used + 1 });
       }
-      setPlaced({ order, lineItems, subtotal, discountAmount, gstAmount, total: cartTotal, coupon: couponResult?.valid ? couponResult.code : null, deliveryFee, notes: deliveryNotes });
-      setCart({}); setCouponCode(""); setCouponResult(null);
-      if (onOrderPlaced) onOrderPlaced();
+      finishOrderSuccess(order, lineItems, deliveryNotes);
     } catch (e) { setError("Could not place order: " + e.message); }
     finally { setPlacing(false); }
   };
+
+  const placeOrderViaRazorpay = async () => {
+    setPlacing(true); setError("");
+    try {
+      await loadRazorpayScript();
+
+      const lineItems = buildLineItems();
+      const deliveryNotes = `Shipping distance: ${activeDistance.toFixed(1)} km from ${dispatchLocation.address}. Shipping charge applied: ₹${deliveryFee}.`;
+      const orderPayload = {
+        retailer_id: account?.id,
+        retailer_phone: account?.phone,
+        retailer_name: account?.shop_name,
+        payment_type: "RAZORPAY",
+        coupon_code: couponResult?.valid ? couponResult.code : null,
+        discount_amount: discountAmount,
+        subtotal,
+        gst_rate: Math.round(effectiveGstRatio * 100),
+        gst_amount: gstAmount,
+        total: cartTotal,
+        notes: deliveryNotes,
+        items: lineItems,
+      };
+
+      const createRes = await fetch("/api/create-razorpay-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
+      });
+      if (!createRes.ok) {
+        const errBody = await createRes.json().catch(() => ({}));
+        throw new Error(errBody.error || "Could not start payment. Please try again.");
+      }
+      const { razorpay_order_id, key_id, amount, currency } = await createRes.json();
+
+      const rzp = new window.Razorpay({
+        key: key_id,
+        amount,
+        currency,
+        order_id: razorpay_order_id,
+        name: "Deetya Weaves",
+        description: "Wholesale order",
+        prefill: { contact: account?.phone || "", name: account?.shop_name || "" },
+        theme: { color: COLORS.indigo },
+        handler: async (response) => {
+          try {
+            const verifyRes = await fetch("/api/verify-razorpay-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+            const order = await verifyRes.json();
+            if (!verifyRes.ok) throw new Error(order.error || "Payment verification failed.");
+            finishOrderSuccess(order, lineItems, deliveryNotes);
+          } catch (e) {
+            setError(e.message);
+          } finally {
+            setPlacing(false);
+          }
+        },
+        modal: {
+          ondismiss: () => { setPlacing(false); },
+        },
+      });
+      rzp.on("payment.failed", (resp) => {
+        setError("Payment failed: " + (resp?.error?.description || "please try again."));
+        setPlacing(false);
+      });
+      rzp.open();
+    } catch (e) {
+      setError(e.message || "Could not start payment.");
+      setPlacing(false);
+    }
+  };
+
 
 // =============================================
 // CartPage is now imported from "./components/CartPage.jsx"
