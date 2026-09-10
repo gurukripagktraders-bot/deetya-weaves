@@ -244,7 +244,7 @@ export default function CartPage({
   };
 
   const handleCopyBankDetails = () => {
-    const details = `Bank: HDFC Bank\nAccount Name: Deetya Weaves Wholesale\nAccount No: 50200084719273\nIFSC Code: HDFC0000125\nUPI ID: deetyaweaves@upi`;
+    const details = `Bank: Bank of Baroda\nAccount Name: Deetya Weaves Wholesale\nAccount No: 01450200001308\nIFSC Code: BARB0KOTAHX\nUPI ID: guruk88249@barodampay`;
     try {
       navigator.clipboard.writeText(details);
     } catch {}
@@ -1145,40 +1145,6 @@ export default function CartPage({
                   </p>
                 </div>
               </div>
-
-              {/* Razorpay Option */}
-              <div
-                onClick={() => setPaymentType("RAZORPAY")}
-                style={{
-                  background: paymentType === "RAZORPAY" ? `${COLORS.indigo}04` : COLORS.cream,
-                  border: `2px solid ${paymentType === "RAZORPAY" ? COLORS.indigo : `${COLORS.charcoalSoft}22`}`,
-                  borderRadius: 8,
-                  padding: "14px",
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  display: "flex",
-                  gap: 10,
-                  alignItems: "flex-start"
-                }}
-              >
-                <div style={{ marginTop: 2 }}>
-                  <input
-                    type="radio"
-                    name="paymentType"
-                    checked={paymentType === "RAZORPAY"}
-                    onChange={() => setPaymentType("RAZORPAY")}
-                    style={{ accentColor: COLORS.indigo, cursor: "pointer" }}
-                  />
-                </div>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: COLORS.indigo, display: "flex", alignItems: "center", gap: 4 }}>
-                    <CreditCard size={14} /> Pay Online (Cards / UPI / Netbanking)
-                  </div>
-                  <p style={{ fontSize: 11.5, color: COLORS.charcoalSoft, marginTop: 3, lineHeight: 1.35 }}>
-                    Secure instant payment via Razorpay — your order is confirmed the moment payment goes through.
-                  </p>
-                </div>
-              </div>
             </div>
 
             {/* Bank details expansion */}
@@ -1214,19 +1180,19 @@ export default function CartPage({
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "100px 1fr" }}>
                         <span style={{ color: COLORS.charcoalSoft }}>Bank Name:</span>
-                        <span>HDFC Bank Ltd</span>
+                        <span>Bank of Baroda</span>
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "100px 1fr" }}>
                         <span style={{ color: COLORS.charcoalSoft }}>Account No:</span>
-                        <strong style={{ fontFamily: "monospace", fontSize: 13 }}>50200084719273</strong>
+                        <strong style={{ fontFamily: "monospace", fontSize: 13 }}>01450200001308</strong>
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "100px 1fr" }}>
                         <span style={{ color: COLORS.charcoalSoft }}>IFSC Code:</span>
-                        <strong style={{ fontFamily: "monospace" }}>HDFC0000125</strong>
+                        <strong style={{ fontFamily: "monospace" }}>BARB0KOTAHX</strong>
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "100px 1fr" }}>
                         <span style={{ color: COLORS.charcoalSoft }}>UPI ID:</span>
-                        <span style={{ color: COLORS.madder, fontWeight: 500 }}>deetyaweaves@upi</span>
+                        <span style={{ color: COLORS.madder, fontWeight: 500 }}>guruk88249@barodampay</span>
                       </div>
                     </div>
                   </div>
