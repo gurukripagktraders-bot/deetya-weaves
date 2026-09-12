@@ -24,9 +24,9 @@ export const ADMIN_EMAILS = [
 export const VAPID_PUBLIC_KEY = "BBqOa0XNKwB7Q6rnOZmej50QHPNfqmkCe57bUXAEejAxJIE3niCUhUY3GSWTb4ZOT4HmynTa7cghfLYQJe82mm0";
 
 export const COLORS = {
-  // Backgrounds — warm stone & parchment
-  ivory:        "#EAE0C7",   // main page background
-  ivoryDeep:    "#DED0AC",   // inputs, secondary backgrounds
+  // Backgrounds — cool stone & grey-green
+  ivory:        "#E3E6DE",   // main page background
+  ivoryDeep:    "#D2D8C7",   // inputs, secondary backgrounds
   cream:        "#FFFFFF",   // card surfaces
 
   // Primary — Deep Bottle Green (ledger cover, trade house)

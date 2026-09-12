@@ -267,7 +267,7 @@ export default function HandloomB2BApp() {
       minHeight:"100vh",
       fontFamily:"var(--sans)",
       backgroundColor: COLORS.ivory,
-      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='2' cy='2' r='1.1' fill='%23AD9260' fill-opacity='0.28'/%3E%3C/svg%3E")`,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='2' cy='2' r='1.1' fill='%238B9683' fill-opacity='0.32'/%3E%3C/svg%3E")`,
       backgroundAttachment: "fixed",
     }}>
       <style>{`
