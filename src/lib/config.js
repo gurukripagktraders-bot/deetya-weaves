@@ -25,8 +25,8 @@ export const VAPID_PUBLIC_KEY = "BBqOa0XNKwB7Q6rnOZmej50QHPNfqmkCe57bUXAEejAxJIE
 
 export const COLORS = {
   // Backgrounds — warm stone & parchment
-  ivory:        "#F1ECE1",   // main page background
-  ivoryDeep:    "#E5DCC8",   // inputs, secondary backgrounds
+  ivory:        "#EAE0C7",   // main page background
+  ivoryDeep:    "#DED0AC",   // inputs, secondary backgrounds
   cream:        "#FFFFFF",   // card surfaces
 
   // Primary — Deep Bottle Green (ledger cover, trade house)

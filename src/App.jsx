@@ -263,7 +263,14 @@ export default function HandloomB2BApp() {
   }
 
   return (
-    <div style={{ background: COLORS.ivory, minHeight:"100vh", fontFamily:"var(--sans)" }}>
+    <div style={{
+      minHeight:"100vh",
+      fontFamily:"var(--sans)",
+      backgroundColor: COLORS.ivory,
+      backgroundImage: `linear-gradient(180deg, ${COLORS.ivory} 0%, #E3D8BC 100%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M18 0H0V18' fill='none' stroke='%23C9B685' stroke-width='1' stroke-opacity='0.35'/%3E%3C/svg%3E")`,
+      backgroundBlendMode: "normal, multiply",
+      backgroundAttachment: "fixed",
+    }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap');
         :root {
