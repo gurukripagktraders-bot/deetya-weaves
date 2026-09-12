@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Search, CheckCircle2, ShoppingBag, Truck, Package, Wallet, Phone,
-  ShieldCheck, User, Bell, ChevronDown, MapPin, FileText,
+  ShieldCheck, User, Bell, ChevronDown, MapPin, FileText, Pencil, Trash2,
 } from "lucide-react";
 import { COLORS, STAGES } from "../lib/config.js";
 import { supabase, callRpc } from "../lib/db.js";
@@ -125,6 +125,9 @@ export default function SellerView({
   const [dcExpiry, setDcExpiry] = useState("");
   const [savingCode, setSavingCode] = useState(false);
   const [showDiscountForm, setShowDiscountForm] = useState(false);
+  const [editingCodeId, setEditingCodeId] = useState(null); // null = creating new; otherwise the id being edited
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null); // id awaiting a second click to confirm delete
+  const [deletingCodeId, setDeletingCodeId] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -187,17 +190,59 @@ export default function SellerView({
     if (!dcCode.trim() || !dcValue) return;
     setSavingCode(true);
     try {
-      await supabase("discount_codes", "POST", {
+      const fields = {
         code: dcCode.trim().toUpperCase(), description: dcDesc, discount_type: dcType,
         discount_value: parseFloat(dcValue), min_order_value: parseFloat(dcMin) || 0,
         max_uses: dcMaxUses ? parseInt(dcMaxUses) : null,
-        valid_until: dcExpiry || null, is_active: true,
-      });
+        valid_until: dcExpiry || null,
+      };
+      if (editingCodeId) {
+        await supabase(`discount_codes?id=eq.${editingCodeId}`, "PATCH", fields);
+      } else {
+        await supabase("discount_codes", "POST", { ...fields, is_active: true });
+      }
       setDcCode(""); setDcDesc(""); setDcValue(""); setDcMin(""); setDcMaxUses(""); setDcExpiry("");
       setShowDiscountForm(false);
+      setEditingCodeId(null);
       fetchDiscountCodes();
-    } catch (e) { showToast("Could not save code: " + e.message, "error"); }
+    } catch (e) { showToast(`Could not ${editingCodeId ? "update" : "save"} code: ` + e.message, "error"); }
     finally { setSavingCode(false); }
+  };
+
+  const startEditCode = (c) => {
+    setEditingCodeId(c.id);
+    setDcCode(c.code || "");
+    setDcDesc(c.description || "");
+    setDcType(c.discount_type || "percentage");
+    setDcValue(c.discount_value != null ? String(c.discount_value) : "");
+    setDcMin(c.min_order_value != null ? String(c.min_order_value) : "");
+    setDcMaxUses(c.max_uses != null ? String(c.max_uses) : "");
+    setDcExpiry(c.valid_until ? c.valid_until.slice(0, 10) : "");
+    setShowDiscountForm(true);
+  };
+
+  const cancelCodeForm = () => {
+    setShowDiscountForm(false);
+    setEditingCodeId(null);
+    setDcCode(""); setDcDesc(""); setDcValue(""); setDcMin(""); setDcMaxUses(""); setDcExpiry("");
+  };
+
+  const deleteCode = async (id) => {
+    if (confirmDeleteId !== id) {
+      setConfirmDeleteId(id);
+      return; // first click just arms the confirmation
+    }
+    setDeletingCodeId(id);
+    try {
+      await supabase(`discount_codes?id=eq.${id}`, "DELETE");
+      setDiscountCodes((prev) => prev.filter((c) => c.id !== id));
+      showToast("Discount code deleted.");
+    } catch (e) {
+      showToast("Could not delete code: " + e.message, "error");
+    } finally {
+      setDeletingCodeId(null);
+      setConfirmDeleteId(null);
+    }
   };
 
   const toggleCode = async (id, current) => {
@@ -666,7 +711,7 @@ export default function SellerView({
               <span style={{ fontSize:18 }}>🏷️</span>
               <h3 style={{ fontFamily:"var(--serif)", fontSize:16.5, color: COLORS.charcoal, margin:0 }}>Discount codes</h3>
             </div>
-            <button onClick={() => setShowDiscountForm(!showDiscountForm)}
+            <button onClick={() => showDiscountForm ? cancelCodeForm() : setShowDiscountForm(true)}
               style={{ background: COLORS.indigo, color: COLORS.cream, border:"none", padding:"7px 14px", borderRadius:8, fontSize:12.5, cursor:"pointer", fontFamily:"var(--sans)" }}>
               {showDiscountForm ? "Cancel" : "+ New code"}
             </button>
@@ -704,7 +749,7 @@ export default function SellerView({
               </div>
               <button onClick={saveDiscountCode} disabled={savingCode || !dcCode || !dcValue}
                 style={{ marginTop:14, background: COLORS.indigo, color: COLORS.cream, border:"none", padding:"9px 18px", borderRadius:8, fontSize:13, cursor:"pointer", fontFamily:"var(--sans)" }}>
-                {savingCode ? "Saving…" : "Save code"}
+                {savingCode ? "Saving…" : editingCodeId ? "Update code" : "Save code"}
               </button>
             </div>
           )}
@@ -714,7 +759,7 @@ export default function SellerView({
               <table style={{ width:"100%", borderCollapse:"collapse", fontSize:13, fontFamily:"var(--sans)" }}>
                 <thead>
                   <tr style={{ background: COLORS.ivoryDeep, textAlign:"left" }}>
-                    {["Code","Type","Value","Min order","Used / Max","Expires","Status"].map(h => (
+                    {["Code","Type","Value","Min order","Used / Max","Expires","Status","Actions"].map(h => (
                       <th key={h} style={{ padding:"10px 14px", fontWeight:500, color: COLORS.charcoalSoft, whiteSpace:"nowrap" }}>{h}</th>
                     ))}
                   </tr>
@@ -733,6 +778,19 @@ export default function SellerView({
                           style={{ fontSize:11.5, background: c.is_active ? COLORS.sage+"22" : COLORS.madder+"22", color: c.is_active ? COLORS.sage : COLORS.madder, border:"none", padding:"3px 10px", borderRadius:12, cursor:"pointer", fontFamily:"var(--sans)" }}>
                           {c.is_active ? "Active" : "Inactive"}
                         </button>
+                      </td>
+                      <td style={{ padding:"10px 14px" }}>
+                        <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+                          <button onClick={() => startEditCode(c)} title="Edit"
+                            style={{ background:"none", border:"none", cursor:"pointer", color: COLORS.charcoalSoft, padding:4, display:"flex" }}>
+                            <Pencil size={14}/>
+                          </button>
+                          <button onClick={() => deleteCode(c.id)} disabled={deletingCodeId === c.id} title={confirmDeleteId === c.id ? "Click again to confirm" : "Delete"}
+                            style={{ background: confirmDeleteId === c.id ? COLORS.madder+"22" : "none", border:"none", borderRadius:6, cursor:"pointer", color: COLORS.madder, padding:"4px 6px", display:"flex", alignItems:"center", gap:4, fontSize:11 }}>
+                            <Trash2 size={14}/>
+                            {confirmDeleteId === c.id && <span>Confirm?</span>}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

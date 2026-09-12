@@ -4,6 +4,7 @@ import {
   AlertTriangle, Sparkles, Trash2, ShoppingBag, Plus, Minus, ArrowRight
 } from "lucide-react";
 import { ImageWithFallback } from "./ui/atoms.jsx";
+import QRCode from "qrcode";
 
 import { COLORS } from "../lib/config.js";
 import {
@@ -251,6 +252,20 @@ export default function CartPage({
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Generates a real, scannable UPI payment QR code — pre-filled with the
+  // exact amount due, so the customer doesn't have to type it in manually.
+  // Regenerates whenever the payable total changes (e.g. a coupon is applied).
+  const [qrDataUrl, setQrDataUrl] = useState(null);
+  useEffect(() => {
+    if (paymentType !== "BANK_QR" || !cartTotal) { setQrDataUrl(null); return; }
+    const upiUri = `upi://pay?pa=guruk88249@barodampay&pn=${encodeURIComponent("Deetya Weaves")}&am=${cartTotal.toFixed(2)}&cu=INR&tn=${encodeURIComponent("Deetya Weaves order payment")}`;
+    let cancelled = false;
+    QRCode.toDataURL(upiUri, { width: 160, margin: 1, color: { dark: COLORS.charcoal, light: "#FFFFFF" } })
+      .then((url) => { if (!cancelled) setQrDataUrl(url); })
+      .catch(() => { if (!cancelled) setQrDataUrl(null); });
+    return () => { cancelled = true; };
+  }, [paymentType, cartTotal]);
 
   // Render Section — EMPTY CART
   if (cartEntries.length === 0) {
@@ -1197,49 +1212,16 @@ export default function CartPage({
                     </div>
                   </div>
 
-                  {/* QR Graphic */}
+                  {/* QR Graphic — real, scannable UPI QR code, pre-filled with the exact amount due */}
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                    <div style={{ background: "#fff", padding: 8, borderRadius: 6, border: `1px solid ${COLORS.charcoalSoft}22` }}>
-                      <svg width="80" height="80" viewBox="0 0 100 100" style={{ display: "block" }}>
-                        <rect x="2" y="2" width="22" height="22" fill={COLORS.indigo} />
-                        <rect x="5" y="5" width="16" height="16" fill="#fff" />
-                        <rect x="8" y="8" width="10" height="10" fill={COLORS.indigo} />
-                        <rect x="76" y="2" width="22" height="22" fill={COLORS.indigo} />
-                        <rect x="79" y="5" width="16" height="16" fill="#fff" />
-                        <rect x="82" y="8" width="10" height="10" fill={COLORS.indigo} />
-                        <rect x="2" y="76" width="22" height="22" fill={COLORS.indigo} />
-                        <rect x="5" y="79" width="16" height="16" fill="#fff" />
-                        <rect x="8" y="82" width="10" height="10" fill={COLORS.indigo} />
-                        <rect x="30" y="4" width="4" height="8" fill={COLORS.charcoal} />
-                        <rect x="38" y="2" width="8" height="4" fill={COLORS.charcoal} />
-                        <rect x="50" y="6" width="12" height="4" fill={COLORS.charcoal} />
-                        <rect x="66" y="4" width="6" height="12" fill={COLORS.charcoal} />
-                        <rect x="4" y="30" width="8" height="4" fill={COLORS.charcoal} />
-                        <rect x="2" y="38" width="4" height="12" fill={COLORS.charcoal} />
-                        <rect x="8" y="54" width="12" height="6" fill={COLORS.charcoal} />
-                        <rect x="30" y="30" width="14" height="14" fill={COLORS.indigo} />
-                        <rect x="33" y="33" width="8" height="8" fill="#fff" />
-                        <rect x="36" y="36" width="2" height="2" fill={COLORS.madder} />
-                        <rect x="48" y="28" width="10" height="4" fill={COLORS.charcoal} />
-                        <rect x="62" y="32" width="4" height="12" fill={COLORS.charcoal} />
-                        <rect x="54" y="48" width="8" height="8" fill={COLORS.charcoal} />
-                        <rect x="76" y="30" width="8" height="6" fill={COLORS.charcoal} />
-                        <rect x="88" y="38" width="10" height="10" fill={COLORS.charcoal} />
-                        <rect x="80" y="52" width="16" height="4" fill={COLORS.charcoal} />
-                        <rect x="28" y="52" width="10" height="10" fill={COLORS.charcoal} />
-                        <rect x="42" y="60" width="6" height="12" fill={COLORS.charcoal} />
-                        <rect x="32" y="76" width="14" height="8" fill={COLORS.charcoal} />
-                        <rect x="30" y="88" width="8" height="10" fill={COLORS.charcoal} />
-                        <rect x="42" y="84" width="10" height="4" fill={COLORS.charcoal} />
-                        <rect x="58" y="64" width="16" height="16" fill={COLORS.charcoal} />
-                        <rect x="62" y="68" width="8" height="8" fill="#fff" />
-                        <rect x="78" y="68" width="6" height="6" fill={COLORS.charcoal} />
-                        <rect x="88" y="78" width="8" height="6" fill={COLORS.charcoal} />
-                        <rect x="78" y="88" width="12" height="10" fill={COLORS.charcoal} />
-                        <rect x="54" y="88" width="10" height="4" fill={COLORS.charcoal} />
-                      </svg>
+                    <div style={{ background: "#fff", padding: 8, borderRadius: 6, border: `1px solid ${COLORS.charcoalSoft}22`, width: 96, height: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {qrDataUrl ? (
+                        <img src={qrDataUrl} alt="Scan to pay via UPI" width={80} height={80} style={{ display: "block" }} />
+                      ) : (
+                        <span style={{ fontSize: 10, color: COLORS.charcoalSoft, textAlign: "center" }}>Generating…</span>
+                      )}
                     </div>
-                    <span style={{ fontSize: 9, color: COLORS.charcoalSoft, marginTop: 4, fontWeight: 500 }}>Scan QR to Pay</span>
+                    <span style={{ fontSize: 9, color: COLORS.charcoalSoft, marginTop: 4, fontWeight: 500 }}>Scan QR to Pay ₹{cartTotal?.toLocaleString("en-IN")}</span>
                   </div>
                 </div>
               </div>
