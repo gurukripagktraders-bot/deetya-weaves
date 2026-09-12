@@ -1318,10 +1318,10 @@ export default function RetailerView({
           const outOfStock = variant.stock === 0;
           const hasVariants = product.variants.length > 1;
           return (
-            <div key={product.id} className="product-card" style={{ background: COLORS.cream, border:`1px solid ${product.isBestseller ? COLORS.turmeric+"44" : `${COLORS.charcoalSoft}18`}`, borderRadius:16, padding:16, position:"relative", display:"flex", flexDirection:"column", justifyContent:"space-between", animationDelay:`${Math.min(index * 50, 400)}ms` }}>
+            <div key={product.id} className="product-card" style={{ background: COLORS.cream, border:`1px solid ${product.isBestseller ? COLORS.turmeric+"44" : `${COLORS.charcoalSoft}18`}`, borderRadius:10, padding:16, position:"relative", display:"flex", flexDirection:"column", justifyContent:"space-between", animationDelay:`${Math.min(index * 50, 400)}ms` }}>
               <div>
                 {product.isBestseller && (
-                  <div style={{ position:"absolute", top:12, left:12, background: COLORS.turmeric, color: COLORS.cream, fontSize:10, fontFamily:"var(--sans)", padding:"4px 10px", borderRadius:20, fontWeight:600, letterSpacing:0.5, zIndex:1, boxShadow: "0 2px 8px rgba(200, 147, 46, 0.2)" }}>⭐ BESTSELLER</div>
+                  <div style={{ position:"absolute", top:12, left:12, background: COLORS.turmeric, color: COLORS.cream, fontSize:10.5, fontFamily:"var(--sans)", padding:"4px 10px", borderRadius:3, fontWeight:600, letterSpacing:0.2, zIndex:1, boxShadow: "0 2px 6px rgba(43,38,32,0.18)" }}>Bestseller</div>
                 )}
                 <div onClick={() => { setSelectedProduct(product); setSelectedVariant(prev => ({ ...prev, [product.id]: variant.id })); }}
                   className="image-zoom-container"

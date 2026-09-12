@@ -177,7 +177,7 @@ export default function MyOrdersPanel({
             <ShoppingBag size={20} color={COLORS.indigo} />
           </div>
           <div>
-            <h2 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 19, color: COLORS.indigo, margin: 0 }}>My Wholesale Orders</h2>
+            <h2 style={{ fontFamily: "var(--serif)", fontSize: 19, color: COLORS.indigo, margin: 0 }}>My Wholesale Orders</h2>
             <p style={{ fontSize: 11.5, color: COLORS.charcoalSoft, margin: "2px 0 0 0" }}>Track status, courier dispatches, and restock order items</p>
           </div>
         </div>
@@ -260,7 +260,7 @@ export default function MyOrdersPanel({
       {filteredOrders.length === 0 ? (
         <div style={{ textAlign: "center", padding: "40px 20px", background: "#FFF", borderRadius: 12, border: `1.5px solid ${COLORS.charcoalSoft}10` }}>
           <Clipboard size={32} color={COLORS.charcoalSoft} opacity="0.5" style={{ margin: "0 auto 12px" }} />
-          <h3 style={{ fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: 16, color: COLORS.indigo, margin: "0 0 4px 0" }}>No matching orders</h3>
+          <h3 style={{ fontFamily: "var(--serif)", fontSize: 16, color: COLORS.indigo, margin: "0 0 4px 0" }}>No matching orders</h3>
           <p style={{ fontSize: 12.5, color: COLORS.charcoalSoft, margin: 0 }}>
             {orders.length === 0 ? "You have not placed any wholesale orders yet." : "No orders match your filter criteria."}
           </p>
@@ -475,7 +475,7 @@ export default function MyOrdersPanel({
                       }}>
                         <div>
                           <span style={{ fontSize: 11, color: COLORS.charcoalSoft, textTransform: "uppercase", letterSpacing: 0.5, display: "block" }}>Shipping Partner</span>
-                          <strong style={{ fontSize: 13.5, color: COLORS.indigo, marginTop: 2, display: "block", fontFamily: "'DM Sans', system-ui, sans-serif" }}>{tracking.courier}</strong>
+                          <strong style={{ fontSize: 13.5, color: COLORS.indigo, marginTop: 2, display: "block", fontFamily: "var(--serif)" }}>{tracking.courier}</strong>
                         </div>
                         <div>
                           <span style={{ fontSize: 11, color: COLORS.charcoalSoft, textTransform: "uppercase", letterSpacing: 0.5, display: "block" }}>Waybill / Airway Bill</span>

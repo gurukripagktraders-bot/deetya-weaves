@@ -24,26 +24,26 @@ export const ADMIN_EMAILS = [
 export const VAPID_PUBLIC_KEY = "BBqOa0XNKwB7Q6rnOZmej50QHPNfqmkCe57bUXAEejAxJIE3niCUhUY3GSWTb4ZOT4HmynTa7cghfLYQJe82mm0";
 
 export const COLORS = {
-  // Backgrounds — warm desert sand
-  ivory:        "#FDF6EC",   // main page background
-  ivoryDeep:    "#F0E4CE",   // inputs, secondary backgrounds
+  // Backgrounds — warm stone & parchment
+  ivory:        "#F1ECE1",   // main page background
+  ivoryDeep:    "#E5DCC8",   // inputs, secondary backgrounds
   cream:        "#FFFFFF",   // card surfaces
 
-  // Primary — Deep Plum (natural indigo-madder mix)
-  indigo:       "#3D1F5C",   // nav, primary buttons, active
+  // Primary — Deep Bottle Green (ledger cover, trade house)
+  indigo:       "#1F3B32",   // nav, primary buttons, active
 
-  // Accent — Marigold (festival flowers)
-  turmeric:     "#E8980A",   // badges, bestseller, highlights
+  // Accent — Antique Brass (trade scales, old coin)
+  turmeric:     "#A87C3F",   // badges, bestseller, highlights
 
-  // Price / CTA — Sunset Orange
-  madder:       "#D45A2A",   // prices, primary CTAs, alerts
+  // Price / CTA / Alerts — Muted Rust
+  madder:       "#B14B3D",   // prices, primary CTAs, alerts
 
-  // Success — Leaf Green
-  sage:         "#2E6B4A",   // in-stock, success, approved
+  // Success — Olive Sage
+  sage:         "#5B7A4F",   // in-stock, success, approved
 
-  // Text hierarchy — warm dark plum
-  charcoal:     "#1A0E28",   // headings, primary text
-  charcoalSoft: "#6B4E8A",   // body, secondary text, meta
+  // Text hierarchy — warm ink brown
+  charcoal:     "#2B2620",   // headings, primary text
+  charcoalSoft: "#6B6152",   // body, secondary text, meta
 };
 
 export const STAGES = ["Pending", "Confirmed", "Packed", "Out for delivery", "Delivered"];

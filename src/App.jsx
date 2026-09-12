@@ -265,10 +265,10 @@ export default function HandloomB2BApp() {
   return (
     <div style={{ background: COLORS.ivory, minHeight:"100vh", fontFamily:"var(--sans)" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap');
         :root {
-          --serif: 'Playfair Display', Georgia, serif;
-          --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+          --serif: 'Fraunces', Georgia, serif;
+          --sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         input::placeholder, select { font-family: var(--sans); }

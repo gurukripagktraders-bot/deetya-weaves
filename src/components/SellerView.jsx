@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Search, CheckCircle2, ShoppingBag, Truck, Package, Wallet, Phone,
-  ShieldCheck, User, Bell, ChevronDown, MapPin, FileText, Pencil, Trash2,
+  ShieldCheck, User, Bell, ChevronDown, MapPin, FileText, Pencil, Trash2, TrendingUp,
 } from "lucide-react";
 import { COLORS, STAGES } from "../lib/config.js";
 import { supabase, callRpc } from "../lib/db.js";
 import { StatCard, ThreadDivider, WeavingProgress, Toast } from "./ui/atoms.jsx";
+import AnalyticsPanel from "./AnalyticsPanel.jsx";
 
 // SELLER DASHBOARD
 // =============================================
@@ -293,6 +294,7 @@ export default function SellerView({
       <div style={{ display:"flex", gap:8, borderBottom:`1.5px solid ${COLORS.ivoryDeep}`, paddingBottom:0, marginTop:18, marginBottom:18, flexWrap:"wrap" }}>
         {[
           { id: "overview", label: "Orders & Overview", icon: <Truck size={14} /> },
+          { id: "analytics", label: "Analytics & Insights", icon: <TrendingUp size={14} /> },
           { id: "sellers", label: "Sellers (Retailers) Details", icon: <User size={14} /> },
           { id: "offers", label: "Offers & Inventory", icon: <Package size={14} /> },
           { id: "dispatch", label: "Dispatch Settings", icon: <MapPin size={14} /> },
@@ -473,6 +475,12 @@ export default function SellerView({
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === "analytics" && (
+        <div style={{ background: COLORS.cream, border: `1px solid ${COLORS.charcoalSoft}22`, borderRadius: 12, padding: "20px 24px", marginBottom: 24, fontFamily: "var(--sans)" }}>
+          <AnalyticsPanel />
         </div>
       )}
 
