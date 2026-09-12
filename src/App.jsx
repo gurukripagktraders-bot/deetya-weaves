@@ -433,7 +433,7 @@ export default function HandloomB2BApp() {
         }
       `}</style>
 
-      <div style={{ maxWidth:980, margin:"0 auto", padding:"24px 20px 60px" }}>
+      <div style={{ maxWidth:1320, margin:"0 auto", padding:"24px 20px 60px" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:14 }}>
           <div onClick={() => { setActivePage("catalog"); setViewingCart(false); }} style={{ display:"flex", alignItems:"center", gap:10, cursor: "pointer" }} title="Go to Catalog">
             <div style={{ width:36, height:36, borderRadius:8, background: COLORS.indigo, display:"flex", alignItems:"center", justifyContent:"center" }}>
